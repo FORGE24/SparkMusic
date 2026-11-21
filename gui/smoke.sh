@@ -28,7 +28,7 @@ step "build (cargo core + Qt shell)"
 cmake --build gui/build >/dev/null
 
 step "rust unit tests"
-cargo test --quiet 2>&1 | grep -E "^test result" || true
+cargo test --quiet --manifest-path "$ROOT/core/Cargo.toml" 2>&1 | grep -E "^test result" || true
 
 step "dynamic linkage"
 readelf -d gui/build/sparkmusic | grep -q 'libsparkmusic_core.so.0' \
@@ -64,7 +64,7 @@ PY2
 step "catalog sanity"
 python3 - <<'PY2'
 import json
-routes = json.load(open("assets/routes.json"))
+routes = json.load(open("core/assets/routes.json"))
 print("routes:", len(routes), "| groups:", len({r["group"] for r in routes}))
 PY2
 

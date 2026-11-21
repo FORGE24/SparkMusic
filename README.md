@@ -10,21 +10,26 @@ Android build.
 | [`api/`](api) | HTTP/JSON service over the catalog | Rust + Axum | Apache-2.0 |
 | [`python/`](python) | Reference client + DEX recovery tooling | Python 3.9+ | MIT |
 
-## core — desktop client
+## core + gui — desktop client
 
-A Rust core that speaks the eapi/weapi/linuxapi envelopes, persists favourites,
-history, playlist/lyric caches and the session in SQLite, and exposes a
-`SparkMusicClient` QObject to a Qt Quick shell (paper/ink themes, login by QR,
-SMS or cookie).
+`core/` speaks the eapi/weapi/linuxapi envelopes, persists favourites, history,
+playlist/lyric caches and the session in SQLite, and exposes a
+`SparkMusicClient` QObject as `build/libsparkmusic_core.so`. `gui/` is the Qt
+Quick shell (paper/ink themes, login by QR, SMS or cookie) and links that
+library dynamically.
 
 ```console
-$ cd core
-$ ./build.sh build          # Rust core + Qt shell (Qt 6.5+, verified with 6.11.2)
+$ cmake -S gui -B gui/build -G Ninja \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
+    -DCMAKE_PREFIX_PATH=/path/to/qt6      # Qt 6.5+, verified 6.11.2
+$ cmake --build gui/build                 # builds core/ too
 $ ./gui/build/sparkmusic
-$ ./gui/smoke.sh            # build + tests + headless screenshots
+$ ./gui/smoke.sh                          # build + tests + headless screenshots
 ```
 
-Details: [`core/README.md`](core/README.md).
+The core alone can be built with `cmake -S core -B core/build && cmake --build core/build`.
+
+Details: [`core/README.md`](core/README.md) and [`gui/README.md`](gui/README.md).
 
 ## api — HTTP service
 

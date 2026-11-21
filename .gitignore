@@ -20,3 +20,4 @@ python/extracted/all_strings.txt
 *.log
 /.cargo-home
 .cargo-home
+gui/screenshots/smoke_*.png

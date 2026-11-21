@@ -7,7 +7,7 @@ description = "Qt-facing core library for SparkMusic, written in Rust with cxx-q
 license = "MIT"
 
 [lib]
-crate-type = ["cdylib", "staticlib", "rlib"]
+crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 aes = "0.8"

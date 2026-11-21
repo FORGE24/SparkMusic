@@ -37,8 +37,12 @@ module, and playback. See “Roadmap”.
 ## Build and test
 
 ```console
-$ ./build.sh build        # cargo build with Qt/CARGO_HOME wired up
+$ ./build.sh build        # cargo build (library only)
 $ ./build.sh test         # 36 unit tests
+$ cmake -S . -B build -G Ninja \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
+    -DCMAKE_PREFIX_PATH=<path-to-qt6>
+$ cmake --build build     # produces build/libsparkmusic_core.so.0
 ```
 
 `build.sh` exists because this host mounts `/home` read-only (so `~/.cargo` and
@@ -54,8 +58,8 @@ The build produces:
 
 | Artifact | Purpose |
 |---|---|
-| `target/debug/libsparkmusic_core.a` | static library for C++/Qt apps |
-| `target/debug/libsparkmusic_core.so` | shared library |
+| `target/debug/libsparkmusic_core.a` | Rust static archive (linked into the Qt library) |
+| `build/libsparkmusic_core.so.0` | Qt-facing shared library (`cmake -S core -B core/build`) |
 | `target/cxxqt/include/` | generated C++ headers (stable path for consumers) |
 
 ## Desktop GUI (Qt Quick)
@@ -63,6 +67,9 @@ The build produces:
 `gui/` is the STILLE shell from the design reference: Swiss typographic layout,
 paper/ink themes, 12-column grid overlay, three views (登陆扉页 / 音乐主页 /
 沉浸播放页).
+
+From the **repository root** (`gui/` is a sibling of `core/`; its CMake adds
+`core/` as a subproject and links the resulting shared library):
 
 ```console
 $ cmake -S gui -B gui/build -G Ninja \
@@ -73,7 +80,7 @@ $ ./gui/build/sparkmusic
 ```
 
 The GUI **dynamically links** the core: CMake links the Rust static archive
-into a shared object (`gui/build/libsparkmusic_core.so.0`, soname versioned) and
+into a shared object (`gui/build/core/libsparkmusic_core.so.0`, soname versioned) and
 `sparkmusic` only carries `NEEDED libsparkmusic_core.so.0`. Replacing that
 library swaps the API implementation without relinking the shell:
 
@@ -81,7 +88,7 @@ library swaps the API implementation without relinking the shell:
 $ readelf -d gui/build/sparkmusic | grep NEEDED
  0x0000000000000001 (NEEDED)   共享库：[libsparkmusic_core.so.0]
 $ ldd gui/build/sparkmusic | grep sparkmusic
- libsparkmusic_core.so.0 => .../gui/build/libsparkmusic_core.so.0
+ libsparkmusic_core.so.0 => .../gui/build/core/libsparkmusic_core.so.0
 ```
 
 Headless rendering (used for the screenshots below):
@@ -96,8 +103,8 @@ Launch flags: `--view login|home|player`, `--section curated|favorites|collectio
 
 | | |
 |---|---|
-| ![Home · real 热歌榜 + cover](gui/screenshots/api_home.png) | ![Player · centred LRC + cover](gui/screenshots/api_player.png) |
-| ![Search · live API](gui/screenshots/dyn_search.png) | ![Ink theme](gui/screenshots/inkhome.png) |
+| ![Home · real 热歌榜 + cover](../gui/screenshots/api_home.png) | ![Player · centred LRC + cover](../gui/screenshots/api_player.png) |
+| ![Search · live API](../gui/screenshots/dyn_search.png) | ![Ink theme](../gui/screenshots/inkhome.png) |
 
 Everything below is fed by the API:
 
@@ -300,19 +307,20 @@ Because login needs the cookie jar to survive across calls, the Rust client now
 keeps one persistent `Transport` and merges every response's `Set-Cookie` into
 it (`Transport::absorb_cookies`), exposing the result via `cookieHeader()`.
 
-![Login · webplayer-parity QR](gui/screenshots/login_webqr.png)
+![Login · webplayer-parity QR](../gui/screenshots/login_webqr.png)
 
-![Login · two-field Cookie](gui/screenshots/cookie_two_fields.png)
+![Login · two-field Cookie](../gui/screenshots/cookie_two_fields.png)
 
 ## Using it from C++ / CMake
 
 ```cmake
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
+# Build the library first: cmake -S core -B core/build && cmake --build core/build
 add_executable(myapp main.cpp)
 target_include_directories(myapp PRIVATE ${SPARKMUSIC_CORE}/target/cxxqt/include)
 target_link_libraries(myapp PRIVATE
-    ${SPARKMUSIC_CORE}/target/debug/libsparkmusic_core.a
+    ${SPARKMUSIC_CORE}/build/libsparkmusic_core.so
     Qt6::Core pthread dl m)
 ```
 
@@ -328,7 +336,8 @@ const QString json = client.songDetail(347230);
 A complete, buildable example lives in [`examples/cpp`](examples/cpp):
 
 ```console
-$ ./build.sh build
+$ ./build.sh build          # cargo archive
+$ cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH=<qt> && cmake --build build
 $ cmake -S examples/cpp -B /tmp/smoke -G Ninja \
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
     -DCMAKE_PREFIX_PATH=$PWD/../qt611/6.11.2/gcc_64
