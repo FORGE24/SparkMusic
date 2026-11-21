@@ -24,8 +24,6 @@ jobs:
     container: debian:trixie
     steps:
       - uses: actions/checkout@v4
-      - name: git trust
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: dependencies
         run: |
           apt-get update
@@ -82,8 +80,6 @@ jobs:
     container: fedora:44
     steps:
       - uses: actions/checkout@v4
-      - name: git trust
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: dependencies
         run: |
           dnf install -y gcc-c++ cmake ninja-build git curl tar \
