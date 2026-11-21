@@ -1,0 +1,31 @@
+[package]
+name = "sparkmusic-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "Qt-facing core library for SparkMusic, written in Rust with cxx-qt"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+aes = "0.8"
+base64 = "0.22"
+cbc = "0.1"
+cipher = { version = "0.4", features = ["block-padding", "alloc"] }
+cxx = "1.0"
+cxx-qt = "0.10"
+cxx-qt-lib = "0.10"
+hex = "0.4.3"
+md-5 = "0.10"
+num-bigint = "0.4"
+qrcode = "0.15.0"
+rand = "0.8"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+ureq = "3.5.2"
+
+[build-dependencies]
+cxx-qt-build = "0.10"
