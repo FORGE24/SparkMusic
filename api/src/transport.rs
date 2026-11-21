@@ -3,11 +3,11 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::{Map, Value};
 
-use crate::config::{Config, APP_VERSION};
+use crate::config::{APP_VERSION, Config};
 use crate::crypto;
 use crate::error::{Error, Result};
 
@@ -184,11 +184,7 @@ impl Transport {
         let mut last_error = None;
 
         for attempt in 0..attempts {
-            let mut request = self
-                .client
-                .post(url)
-                .headers(self.headers())
-                .form(&form);
+            let mut request = self.client.post(url).headers(self.headers()).form(&form);
             if self.config.timeout.as_millis() > 0 {
                 request = request.timeout(self.config.timeout);
             }
@@ -230,10 +226,7 @@ impl Transport {
         let mut headers = HeaderMap::new();
         headers.insert("User-Agent", header_value(&self.config.user_agent));
         headers.insert("Accept", header_value("*/*"));
-        headers.insert(
-            "Accept-Language",
-            header_value("zh-CN,zh;q=0.9,en;q=0.6"),
-        );
+        headers.insert("Accept-Language", header_value("zh-CN,zh;q=0.9,en;q=0.6"));
         headers.insert(
             "Content-Type",
             header_value("application/x-www-form-urlencoded"),
@@ -390,8 +383,13 @@ mod tests {
         let t = transport();
         let mut body = Map::new();
         body.insert("ids".into(), Value::String("[347230]".into()));
-        let (url, form) = t.build_request("eapi", "song/enhance/player/url/v1", body).unwrap();
-        assert_eq!(url, "https://interface.music.163.com/eapi/song/enhance/player/url/v1");
+        let (url, form) = t
+            .build_request("eapi", "song/enhance/player/url/v1", body)
+            .unwrap();
+        assert_eq!(
+            url,
+            "https://interface.music.163.com/eapi/song/enhance/player/url/v1"
+        );
         assert_eq!(form.len(), 1);
         assert_eq!(form[0].0, "params");
         assert!(!form[0].1.is_empty());
@@ -413,9 +411,7 @@ mod tests {
     fn weapi_url_carries_the_csrf_query() {
         let t = transport();
         t.set_cookie("MUSIC_U=abc; __csrf=tok123");
-        let (url, form) = t
-            .build_request("weapi", "song/detail", Map::new())
-            .unwrap();
+        let (url, form) = t.build_request("weapi", "song/detail", Map::new()).unwrap();
         assert!(url.ends_with("?csrf_token=tok123"));
         let names: Vec<&str> = form.iter().map(|(k, _)| k.as_str()).collect();
         assert_eq!(names, ["params", "encSecKey", "csrf_token"]);
@@ -435,7 +431,9 @@ mod tests {
     #[test]
     fn linuxapi_posts_to_the_forward_endpoint() {
         let t = transport();
-        let (url, form) = t.build_request("linuxapi", "song/detail", Map::new()).unwrap();
+        let (url, form) = t
+            .build_request("linuxapi", "song/detail", Map::new())
+            .unwrap();
         assert_eq!(url, "https://music.163.com/api/linux/forward");
         assert_eq!(form[0].0, "eparams");
     }

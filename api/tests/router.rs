@@ -5,7 +5,7 @@ use std::sync::Arc;
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
-use sparkmusic_api::api::{router, AppState};
+use sparkmusic_api::api::{AppState, router};
 use sparkmusic_api::config::Config;
 use sparkmusic_api::transport::Transport;
 use tower::ServiceExt;

@@ -33,7 +33,8 @@ impl Catalog {
     /// Parse the embedded catalog once per process.
     pub fn global() -> &'static Catalog {
         static CATALOG: OnceLock<Catalog> = OnceLock::new();
-        CATALOG.get_or_init(|| Catalog::from_json(RAW).expect("embedded route catalog is valid JSON"))
+        CATALOG
+            .get_or_init(|| Catalog::from_json(RAW).expect("embedded route catalog is valid JSON"))
     }
 
     pub fn from_json(raw: &str) -> Result<Self, serde_json::Error> {
@@ -61,11 +62,8 @@ impl Catalog {
 
     /// Number of routes per group, sorted by name.
     pub fn group_counts(&self) -> Vec<(String, usize)> {
-        let mut out: Vec<(String, usize)> = self
-            .groups
-            .iter()
-            .map(|(g, n)| (g.clone(), *n))
-            .collect();
+        let mut out: Vec<(String, usize)> =
+            self.groups.iter().map(|(g, n)| (g.clone(), *n)).collect();
         out.sort_by(|a, b| a.0.cmp(&b.0));
         out
     }
@@ -139,7 +137,10 @@ mod tests {
         assert_eq!(canonical("song/detail"), "song/detail");
         assert_eq!(canonical("/api/song/detail"), "song/detail");
         assert_eq!(canonical("weapi/song/detail?x=1"), "song/detail");
-        assert_eq!(canonical("https://music.163.com/weapi/song/detail?a=1"), "song/detail");
+        assert_eq!(
+            canonical("https://music.163.com/weapi/song/detail?a=1"),
+            "song/detail"
+        );
         assert_eq!(canonical("eapi/v3/song/detail"), "v3/song/detail");
     }
 
@@ -147,8 +148,14 @@ mod tests {
     fn lookup_tolerates_prefixes_and_versions() {
         let catalog = Catalog::global();
         assert_eq!(catalog.get("song/detail").unwrap().route, "v3/song/detail");
-        assert_eq!(catalog.get("/api/song/detail").unwrap().route, "v3/song/detail");
-        assert_eq!(catalog.get("eapi/song/detail?x=1").unwrap().route, "v3/song/detail");
+        assert_eq!(
+            catalog.get("/api/song/detail").unwrap().route,
+            "v3/song/detail"
+        );
+        assert_eq!(
+            catalog.get("eapi/song/detail?x=1").unwrap().route,
+            "v3/song/detail"
+        );
         assert!(catalog.get("definitely/not/a/route").is_none());
     }
 

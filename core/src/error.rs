@@ -21,7 +21,9 @@ impl fmt::Display for CoreError {
             CoreError::BadRequest(msg) => write!(f, "bad request: {msg}"),
             CoreError::Crypto(msg) => write!(f, "encryption failed: {msg}"),
             CoreError::Transport(msg) => write!(f, "transport failed: {msg}"),
-            CoreError::Http { status, body } => write!(f, "upstream returned HTTP {status}: {body}"),
+            CoreError::Http { status, body } => {
+                write!(f, "upstream returned HTTP {status}: {body}")
+            }
             CoreError::Json(msg) => write!(f, "invalid JSON: {msg}"),
         }
     }

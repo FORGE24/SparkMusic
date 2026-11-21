@@ -66,7 +66,9 @@ impl Database {
     pub fn default_path() -> Option<PathBuf> {
         let base = std::env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
-            .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share")))?;
+            .or_else(|| {
+                std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share"))
+            })?;
         Some(base.join("sparkmusic").join("sparkmusic.db"))
     }
 
@@ -168,7 +170,9 @@ impl Database {
     }
 
     fn lock(&self) -> std::sync::MutexGuard<'_, Connection> {
-        self.conn.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.conn
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     // ------------------------------------------------------------- favourites
@@ -364,9 +368,8 @@ impl Database {
 
     pub fn search_history(&self, limit: i64) -> rusqlite::Result<Vec<String>> {
         let conn = self.lock();
-        let mut stmt = conn.prepare(
-            "SELECT query FROM search_history ORDER BY searched_at DESC LIMIT ?1",
-        )?;
+        let mut stmt =
+            conn.prepare("SELECT query FROM search_history ORDER BY searched_at DESC LIMIT ?1")?;
         let rows = stmt.query_map(params![limit.max(1)], |row| row.get(0))?;
         rows.collect()
     }
@@ -388,7 +391,9 @@ impl Database {
 
     pub fn load_session(&self) -> Option<String> {
         self.lock()
-            .query_row("SELECT cookie FROM session WHERE id = 1", [], |row| row.get(0))
+            .query_row("SELECT cookie FROM session WHERE id = 1", [], |row| {
+                row.get(0)
+            })
             .ok()
     }
 
@@ -460,7 +465,10 @@ mod tests {
         assert_eq!(db.setting("theme").as_deref(), Some("paper"));
 
         db.save_session("MUSIC_U=abc; __csrf=tok").unwrap();
-        assert_eq!(db.load_session().as_deref(), Some("MUSIC_U=abc; __csrf=tok"));
+        assert_eq!(
+            db.load_session().as_deref(),
+            Some("MUSIC_U=abc; __csrf=tok")
+        );
         db.save_session("MUSIC_U=xyz").unwrap();
         assert_eq!(db.load_session().as_deref(), Some("MUSIC_U=xyz"));
         db.clear_session().unwrap();

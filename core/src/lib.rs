@@ -290,9 +290,8 @@ impl Default for SparkMusicClientRust {
     fn default() -> Self {
         Self {
             transport: Transport::new("eapi", "", &random_alnum(32)),
-            db: Database::open_default().unwrap_or_else(|_| {
-                Database::open_in_memory().expect("in-memory database")
-            }),
+            db: Database::open_default()
+                .unwrap_or_else(|_| Database::open_in_memory().expect("in-memory database")),
             qr_mode: RwLock::new("api".to_string()),
             qr_type: RwLock::new(3),
             anonymous_tried: RwLock::new(false),
@@ -341,12 +340,7 @@ fn track_count(value: &Value) -> usize {
         .pointer("/playlist/tracks")
         .and_then(Value::as_array)
         .map(Vec::len)
-        .or_else(|| {
-            value
-                .get("songs")
-                .and_then(Value::as_array)
-                .map(Vec::len)
-        })
+        .or_else(|| value.get("songs").and_then(Value::as_array).map(Vec::len))
         .unwrap_or(0)
 }
 
@@ -362,7 +356,10 @@ fn is_code_ok(value: &Value) -> bool {
 /// `playlist.trackIds` entries are objects (`{"id": …}`) in v6 responses, but
 /// tolerate bare numbers/strings as well.
 fn playlist_track_ids(value: &Value) -> Vec<i64> {
-    let Some(ids) = value.pointer("/playlist/trackIds").and_then(Value::as_array) else {
+    let Some(ids) = value
+        .pointer("/playlist/trackIds")
+        .and_then(Value::as_array)
+    else {
         return Vec::new();
     };
     ids.iter()
@@ -392,7 +389,11 @@ fn default_export_candidates() -> Vec<std::path::PathBuf> {
         out.push(std::path::PathBuf::from(dir).join("sparkmusic-favorites.m3u8"));
     }
     if let Some(home) = std::env::var_os("HOME") {
-        out.push(std::path::PathBuf::from(home).join("Music").join("sparkmusic-favorites.m3u8"));
+        out.push(
+            std::path::PathBuf::from(home)
+                .join("Music")
+                .join("sparkmusic-favorites.m3u8"),
+        );
     }
     if let Some(data) = crate::db::Database::default_path() {
         if let Some(parent) = data.parent() {
@@ -586,9 +587,9 @@ impl qobject::SparkMusicClient {
             })
             .unwrap_or(false);
         if !usable {
-            if let Ok(mut value) =
-                self.transport
-                    .call_mode("v6/playlist/detail", &params, "weapi")
+            if let Ok(mut value) = self
+                .transport
+                .call_mode("v6/playlist/detail", &params, "weapi")
             {
                 if is_code_ok(&value) {
                     self.hydrate_playlist(&mut value, limit);
@@ -837,7 +838,9 @@ impl qobject::SparkMusicClient {
             Value::String(crypto::md5_hex(password.to_string().as_bytes())),
         );
         params.insert("rememberLogin".into(), Value::String("true".into()));
-        let result = self.transport.call_mode("login/cellphone", &params, "weapi");
+        let result = self
+            .transport
+            .call_mode("login/cellphone", &params, "weapi");
         if let Ok(value) = &result {
             self.absorb_login(value);
         }
@@ -848,7 +851,10 @@ impl qobject::SparkMusicClient {
         let mut params = Map::new();
         params.insert("cellphone".into(), Value::String(phone.to_string()));
         params.insert("ctcode".into(), Value::String("86".into()));
-        result_json(self.transport.call_mode("sms/captcha/sent", &params, "weapi"))
+        result_json(
+            self.transport
+                .call_mode("sms/captcha/sent", &params, "weapi"),
+        )
     }
 
     pub fn login_email(&self, user: &QString, password: &QString) -> QString {
@@ -1019,7 +1025,11 @@ impl qobject::SparkMusicClient {
             m3u8.push_str(&format!(
                 "#EXTINF:{},{} - {}\nhttps://music.163.com/song?id={}\n",
                 track.duration.max(0),
-                if track.artist.is_empty() { "Unknown" } else { &track.artist },
+                if track.artist.is_empty() {
+                    "Unknown"
+                } else {
+                    &track.artist
+                },
                 track.title,
                 track.id
             ));
@@ -1140,10 +1150,8 @@ mod tests {
         let device = "0123456789abcdef0123456789abcdef";
         assert_eq!(cloudmusic_dll_encode_id(device), "l5/rc1nh0Qv3B2jfKxnZiQ==");
         use base64::Engine as _;
-        let username = base64::engine::general_purpose::STANDARD.encode(format!(
-            "{device} {}",
-            cloudmusic_dll_encode_id(device)
-        ));
+        let username = base64::engine::general_purpose::STANDARD
+            .encode(format!("{device} {}", cloudmusic_dll_encode_id(device)));
         assert_eq!(
             username,
             "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYgbDUvcmMxbmgwUXYzQjJqZkt4blppUT09"
@@ -1153,9 +1161,18 @@ mod tests {
     #[test]
     fn only_transport_and_server_failures_are_retried_for_qr() {
         assert!(qr_retryable(&CoreError::Transport("reset".into())));
-        assert!(qr_retryable(&CoreError::Http { status: 502, body: String::new() }));
-        assert!(qr_retryable(&CoreError::Http { status: 429, body: String::new() }));
-        assert!(!qr_retryable(&CoreError::Http { status: 400, body: String::new() }));
+        assert!(qr_retryable(&CoreError::Http {
+            status: 502,
+            body: String::new()
+        }));
+        assert!(qr_retryable(&CoreError::Http {
+            status: 429,
+            body: String::new()
+        }));
+        assert!(!qr_retryable(&CoreError::Http {
+            status: 400,
+            body: String::new()
+        }));
         assert!(!qr_retryable(&CoreError::BadRequest("x".into())));
     }
 

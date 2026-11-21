@@ -19,9 +19,14 @@ if (TARGET Qt6::qmake)
     get_target_property(QMAKE_EXE Qt6::qmake IMPORTED_LOCATION)
 endif()
 
-set(CARGO_ENV ${CMAKE_COMMAND} -E env
-    "CARGO_HOME=${CMAKE_CURRENT_SOURCE_DIR}/.cargo-home"
-    "CCACHE_DISABLE=1")
+# Keep CARGO_HOME untouched when the caller provides one (CI caches it there);
+# only fall back to the in-repo cache used on this read-only-home build host.
+set(CARGO_ENV ${CMAKE_COMMAND} -E env "CCACHE_DISABLE=1")
+if (DEFINED ENV{CARGO_HOME} AND NOT "$ENV{CARGO_HOME}" STREQUAL "")
+    list(APPEND CARGO_ENV "CARGO_HOME=$ENV{CARGO_HOME}")
+elseif (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.cargo-home")
+    list(APPEND CARGO_ENV "CARGO_HOME=${CMAKE_CURRENT_SOURCE_DIR}/.cargo-home")
+endif()
 if (QMAKE_EXE)
     list(APPEND CARGO_ENV "QMAKE=${QMAKE_EXE}")
 endif()

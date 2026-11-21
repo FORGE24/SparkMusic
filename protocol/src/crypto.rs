@@ -4,7 +4,6 @@
 //! weapi = AES-128-CBC twice (preset key, then a random secret) + textbook RSA,
 //! linuxapi = AES-128-ECB over `{method,url,params}`.
 
-
 /// Errors raised while building an envelope.
 #[derive(Debug, Clone)]
 pub enum CryptoError {
@@ -34,7 +33,6 @@ use rand::distributions::Alphanumeric;
 use rand::Rng;
 use serde_json::{Map, Value};
 
-
 pub const WEAPI_PRESET_KEY: &[u8] = b"0CoJUm6Qyw8W8jud";
 pub const WEAPI_IV: &[u8] = b"0102030405060708";
 pub const EAPI_KEY: &[u8] = b"e82ckenh8dichen8";
@@ -62,8 +60,8 @@ pub fn md5_bytes(data: &[u8]) -> Vec<u8> {
 pub fn aes_ecb_encrypt(data: &[u8], key: &[u8]) -> CryptoResult<Vec<u8>> {
     use aes::cipher::block_padding::Pkcs7;
     use aes::cipher::{BlockEncryptMut, KeyInit};
-    let cipher = aes::Aes128::new_from_slice(key)
-        .map_err(|_| crypto_error("invalid AES key length"))?;
+    let cipher =
+        aes::Aes128::new_from_slice(key).map_err(|_| crypto_error("invalid AES key length"))?;
     Ok(cipher.encrypt_padded_vec_mut::<Pkcs7>(data))
 }
 
@@ -120,7 +118,11 @@ pub fn weapi_encrypt(params: &Map<String, Value>) -> CryptoResult<(String, Strin
     let text = json_text(params)?;
     let secret = random_secret();
     let first = aes_cbc_encrypt(text.as_bytes(), WEAPI_PRESET_KEY, WEAPI_IV)?;
-    let second = aes_cbc_encrypt(first.to_base64_string().as_bytes(), secret.as_bytes(), WEAPI_IV)?;
+    let second = aes_cbc_encrypt(
+        first.to_base64_string().as_bytes(),
+        secret.as_bytes(),
+        WEAPI_IV,
+    )?;
     Ok((second.to_base64_string(), rsa_encrypt(&secret)))
 }
 

@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use sparkmusic_api::api::{router, AppState};
+use sparkmusic_api::api::{AppState, router};
 use sparkmusic_api::config::Config;
 use sparkmusic_api::transport::Transport;
 use tracing_subscriber::EnvFilter;

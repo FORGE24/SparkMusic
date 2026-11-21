@@ -202,7 +202,10 @@ async fn song_detail(
 ) -> Result<Json<Value>> {
     let mut params = Map::new();
     params.insert("id".into(), Value::String(id.clone()));
-    params.insert("c".into(), Value::String(format!("[{{\"id\":{}}}]", id_value(&id))));
+    params.insert(
+        "c".into(),
+        Value::String(format!("[{{\"id\":{}}}]", id_value(&id))),
+    );
     params.insert("v".into(), Value::from(1));
     params.insert("rv".into(), Value::from(1));
     params.insert(
@@ -280,7 +283,10 @@ async fn song_comments(
     params.insert("resourceType".into(), Value::from(4));
     params.insert("limit".into(), Value::from(query.limit.unwrap_or(20)));
     params.insert("offset".into(), Value::from(query.offset.unwrap_or(0)));
-    let data = state.transport.call("v1/resource/comments", &params).await?;
+    let data = state
+        .transport
+        .call("v1/resource/comments", &params)
+        .await?;
     Ok(Json(data))
 }
 
@@ -298,7 +304,10 @@ async fn playlist_detail(
     Ok(Json(data))
 }
 
-async fn album_detail(State(state): State<AppState>, Path(id): Path<String>) -> Result<Json<Value>> {
+async fn album_detail(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Result<Json<Value>> {
     let route = format!("album/{id}");
     let data = state.transport.call(&route, &Map::new()).await?;
     Ok(Json(data))
@@ -348,11 +357,7 @@ async fn qr_check(
     qr_client_login(state, query.key, "qr check").await
 }
 
-async fn qr_client_login(
-    state: AppState,
-    key: Option<String>,
-    what: &str,
-) -> Result<Json<Value>> {
+async fn qr_client_login(state: AppState, key: Option<String>, what: &str) -> Result<Json<Value>> {
     let key = key
         .filter(|k| !k.trim().is_empty())
         .ok_or_else(|| Error::BadRequest(format!("key is required for {what}")))?;
