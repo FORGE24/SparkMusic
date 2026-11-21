@@ -1,0 +1,113 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  protocol-api:
+    name: protocol + api (Rust)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            protocol -> target
+            api -> target
+      - name: rustfmt
+        run: |
+          cargo fmt --manifest-path protocol/Cargo.toml -- --check
+          cargo fmt --manifest-path api/Cargo.toml -- --check
+      - name: tests
+        run: |
+          cargo test --manifest-path protocol/Cargo.toml
+          cargo test --manifest-path api/Cargo.toml
+
+  python:
+    name: python client (${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: python/requirements.txt
+      - name: install
+        run: pip install -r requirements.txt
+        working-directory: python
+      - name: tests
+        run: python -m unittest discover -s tests -t .
+        working-directory: python
+
+  core-gui:
+    name: core + gui (Qt)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build libgl1-mesa-dev libegl1-mesa-dev libxkbcommon-dev
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          modules: "qtdeclarative qtmultimedia"
+          cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            protocol -> target
+            core -> target
+      - name: rustfmt (core)
+        run: cargo fmt --manifest-path core/Cargo.toml -- --check
+      - name: cargo test (core)
+        run: cargo test --manifest-path core/Cargo.toml
+        env:
+          QMAKE: ${{ env.QT_ROOT_DIR }}/bin/qmake
+          LD_LIBRARY_PATH: ${{ env.QT_ROOT_DIR }}/lib
+      - name: configure gui
+        run: |
+          cmake -S gui -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+      - name: build gui
+        run: cmake --build build
+      - name: headless smoke
+        run: |
+          mkdir -p screenshots
+          export XDG_DATA_HOME="$RUNNER_TEMP/sparkmusic"
+          QT_QPA_PLATFORM=offscreen ./build/sparkmusic \
+            --screenshot screenshots/home.png --view home --delay 6000
+          QT_QPA_PLATFORM=offscreen ./build/sparkmusic \
+            --screenshot screenshots/login.png --view login --delay 6000
+          ldd ./build/sparkmusic | grep libsparkmusic_core
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gui-screenshots
+          path: screenshots/
+          if-no-files-found: error

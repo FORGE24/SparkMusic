@@ -1,5 +1,7 @@
 # SparkMusic
 
+[![ci](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml)
+
 Three related projects in one repository. They share the same recovered route
 catalog: **1,293 endpoints** extracted from the NetEase Cloud Music 9.6.30
 Android build.
@@ -75,3 +77,14 @@ Details: [`python/README.md`](python/README.md) and [`python/API.md`](python/API
 Each subproject is licensed on its own terms: nothing in this repository
 relicenses a third-party component, and the Python client's MIT terms do not
 extend to `core/` or `api/`.
+
+## CI
+
+`.github/workflows/ci.yml` runs three jobs on every push and pull request:
+
+* **protocol + api** — rustfmt check + `cargo test` (no Qt needed)
+* **python** — unit tests on Python 3.9 and 3.12
+* **core + gui** — Qt 6.8 from `install-qt-action`, `cargo test` for the core,
+  then a Ninja build of the shell and two offscreen screenshots uploaded as an
+  artifact (the run also asserts `ldd build/sparkmusic` resolves
+  `libsparkmusic_core.so.0`)
