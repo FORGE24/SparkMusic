@@ -49,3 +49,14 @@ qt_add_resources(sparkmusic "branding"
         "${CMAKE_CURRENT_SOURCE_DIR}/../branding/mark-ink.png"
         "${CMAKE_CURRENT_SOURCE_DIR}/../branding/wordmark.png"
         "${CMAKE_CURRENT_SOURCE_DIR}/../branding/wordmark-ink.png")
+
+# ---- install layout (used by nfpm, see packaging/) ----
+install(TARGETS sparkmusic RUNTIME DESTINATION bin COMPONENT runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/sparkmusic.desktop"
+        DESTINATION share/applications COMPONENT runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../branding/icon-paper.png"
+        DESTINATION share/icons/hicolor/512x512/apps
+        RENAME sparkmusic.png COMPONENT runtime)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE"
+              "${CMAKE_CURRENT_SOURCE_DIR}/../NOTICE"
+        DESTINATION share/doc/sparkmusic COMPONENT doc)

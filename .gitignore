@@ -21,3 +21,6 @@ python/extracted/all_strings.txt
 /.cargo-home
 .cargo-home
 gui/screenshots/smoke_*.png
+pkgbuild/
+staging/
+dist/

@@ -53,3 +53,7 @@ target_link_libraries(sparkmusic_core
     PUBLIC Qt6::Core
     PRIVATE "-Wl,--whole-archive" "${CMAKE_CURRENT_SOURCE_DIR}/target/debug/libsparkmusic_core.a"
             "-Wl,--no-whole-archive" pthread dl m)
+
+install(TARGETS sparkmusic_core
+    LIBRARY DESTINATION lib
+    COMPONENT runtime)

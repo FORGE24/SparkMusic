@@ -1,0 +1,62 @@
+# nfpm packaging recipe: one config, both deb and rpm.
+#   VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//') \
+#   ARCH=amd64 nfpm package -f packaging/nfpm.yaml -p deb -t dist/
+name: sparkmusic
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: "1"
+
+section: sound
+priority: optional
+maintainer: FORGE24 <CHENshidi2021@outlook.com>
+vendor: FORGE24
+homepage: https://github.com/FORGE24/SparkMusic
+license: Apache-2.0
+description: |
+  STILLE desktop client for the NetEase Cloud Music API.
+  A Qt Quick shell over a Rust core with QR/SMS/Cookie login, a local
+  favourites/history database and the recovered 1,293-route catalog.
+  Requires the distribution's Qt 6 (>= 6.5); Qt is linked dynamically.
+
+contents:
+  - src: staging/usr/bin/sparkmusic
+    dst: /usr/bin/sparkmusic
+    file_info:
+      mode: 0755
+  - src: staging/usr/lib/libsparkmusic_core.so.0.1.0
+    dst: /usr/lib/libsparkmusic_core.so.0.1.0
+    file_info:
+      mode: 0644
+  - src: /usr/lib/libsparkmusic_core.so.0
+    dst: /usr/lib/libsparkmusic_core.so.0
+    type: symlink
+  - src: staging/usr/share/applications/sparkmusic.desktop
+    dst: /usr/share/applications/sparkmusic.desktop
+    file_info:
+      mode: 0644
+  - src: staging/usr/share/icons/hicolor/512x512/apps/sparkmusic.png
+    dst: /usr/share/icons/hicolor/512x512/apps/sparkmusic.png
+    file_info:
+      mode: 0644
+  - src: staging/usr/share/doc/sparkmusic/LICENSE
+    dst: /usr/share/doc/sparkmusic/LICENSE
+  - src: staging/usr/share/doc/sparkmusic/NOTICE
+    dst: /usr/share/doc/sparkmusic/NOTICE
+
+overrides:
+  deb:
+    depends:
+      - libqt6core6t64 (>= 6.5) | libqt6core6 (>= 6.5)
+      - libqt6gui6t64 | libqt6gui6
+      - libqt6qml6
+      - libqt6quick6
+      - libqt6multimedia6
+      - qml6-module-qtquick
+      - qml6-module-qtquick-layouts
+      - qml6-module-qtmultimedia
+  rpm:
+    depends:
+      - qt6-qtbase >= 6.5
+      - qt6-qtdeclarative
+      - qt6-qtmultimedia

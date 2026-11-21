@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=SparkMusic
+Name[zh_CN]=静听 · STILLE
+GenericName=Music Player
+GenericName[zh_CN]=音乐播放器
+Comment=STILLE desktop client for the NetEase Cloud Music API
+Comment[zh_CN]=网易云音乐 API 的极简桌面客户端
+Exec=sparkmusic
+Icon=sparkmusic
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=music;netease;player;
+StartupWMClass=sparkmusic

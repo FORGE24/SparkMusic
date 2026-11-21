@@ -1,0 +1,145 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the leading v"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+env:
+  NFPM_VERSION: "2.49.0"
+
+jobs:
+  deb:
+    name: deb (Debian trixie)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container: debian:trixie
+    steps:
+      - uses: actions/checkout@v4
+      - name: git trust
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build git curl ca-certificates pkg-config \
+            qt6-base-dev qt6-base-dev-tools qt6-declarative-dev qt6-declarative-dev-tools qt6-multimedia-dev \
+            libgl1-mesa-dev libegl1-mesa-dev
+      - name: rust
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: version
+        id: v
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="${{ inputs.version }}"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "building $V"
+      - name: build and stage
+        run: |
+          cmake -S gui -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build
+          DESTDIR="$PWD/staging" cmake --install build --strip
+      - name: package
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          ARCH: amd64
+        run: |
+          curl -sSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" \
+            | tar -xz -C /usr/local/bin nfpm
+          mkdir -p dist
+          nfpm package -f packaging/nfpm.yaml -p deb -t dist/
+          sha256sum dist/*.deb > dist/SHA256SUMS
+          ls -lh dist
+      - name: install check
+        run: |
+          apt-get install -y ./dist/*.deb
+          dpkg -s sparkmusic | head -6
+          ldd /usr/bin/sparkmusic | grep sparkmusic_core
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: dist/
+          if-no-files-found: error
+
+  rpm:
+    name: rpm (Fedora 44)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container: fedora:44
+    steps:
+      - uses: actions/checkout@v4
+      - name: git trust
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: dependencies
+        run: |
+          dnf install -y gcc-c++ cmake ninja-build git curl tar \
+            qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtmultimedia-devel \
+            mesa-libGL-devel rust cargo
+      - name: version
+        id: v
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="${{ inputs.version }}"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "building $V"
+      - name: build and stage
+        run: |
+          cmake -S gui -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build
+          DESTDIR="$PWD/staging" cmake --install build --strip
+      - name: package
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          ARCH: amd64
+        run: |
+          curl -sSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" \
+            | tar -xz -C /usr/local/bin nfpm
+          mkdir -p dist
+          nfpm package -f packaging/nfpm.yaml -p rpm -t dist/
+          sha256sum dist/*.rpm > dist/SHA256SUMS
+          ls -lh dist
+      - name: install check
+        run: |
+          dnf install -y ./dist/*.rpm
+          rpm -qi sparkmusic | head -6
+          ldd /usr/bin/sparkmusic | grep sparkmusic_core
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: publish release
+    needs: [deb, rpm]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: list assets
+        run: ls -lh dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

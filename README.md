@@ -90,3 +90,25 @@ extend to `core/` or `api/`.
   then a Ninja build of the shell and two offscreen screenshots uploaded as an
   artifact (the run also asserts `ldd build/sparkmusic` resolves
   `libsparkmusic_core.so.0`)
+
+## Releases
+
+Pushing a `v*` tag builds and publishes installable packages:
+
+```console
+$ git tag v0.1.0 && git push origin v0.1.0
+```
+
+`.github/workflows/release.yml` builds in two containers and attaches the
+results to the GitHub Release:
+
+| Job | Base image | Asset |
+|---|---|---|
+| `deb` | `debian:trixie` (Qt 6.8) | `sparkmusic_<version>-1_amd64.deb` |
+| `rpm` | `fedora:44` (Qt 6.11) | `sparkmusic-<version>-1.x86_64.rpm` |
+
+Each job installs its own package inside the container (resolving Qt
+dependencies) and checks that `libsparkmusic_core.so.0` resolves. Qt is not
+bundled: the packages depend on the distribution's Qt 6 and link it
+dynamically. The packaging recipe and manual commands live in
+[`packaging/`](packaging).
