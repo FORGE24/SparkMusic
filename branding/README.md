@@ -21,5 +21,7 @@ $ magick -background none mark-paper.svg -resize 256x256 mark-paper.png
 $ magick -background none wordmark.svg   -resize 1360x256 wordmark.png
 ```
 
+![Login preview](preview-login.png)
+
 The mark stays a single vermilion `#D94126` accent on a hairline Swiss grid,
 matching the paper/ink palette used by the shell.
