@@ -14,6 +14,7 @@ Item {
     signal sessionCleared()
 
     property bool sessionActive: false
+    property bool darkTheme: false
 
     property string mode: typeof launchLoginMode !== "undefined" && launchLoginMode.length > 0
         ? "credential" : "qr"
@@ -422,9 +423,11 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.verticalCenterOffset: -16
 
+                    // The plate stays paper-white in both themes: light modules
+                    // on a dark plate are often rejected by phone scanners.
                     Rectangle {
                         anchors.fill: parent
-                        color: login.pal.canvas
+                        color: "#F2F1ED"
                         border.color: login.pal.faint
                         border.width: 1
                     }
@@ -443,7 +446,7 @@ Item {
                             var cell = Math.floor(Math.min(width, height) / n);
                             var ox = Math.floor((width - cell * n) / 2);
                             var oy = Math.floor((height - cell * n) / 2);
-                            ctx.fillStyle = login.pal.ink;
+                            ctx.fillStyle = "#141414";
                             for (var y = 0; y < n; y++) {
                                 var row = rows[y];
                                 for (var x = 0; x < row.length; x++) {
@@ -462,11 +465,11 @@ Item {
                         width: parent.width * 0.12
                         height: width
                         anchors.centerIn: parent
-                        color: login.pal.canvas
+                        color: "#F2F1ED"
                         Text {
                             anchors.centerIn: parent
                             text: "静"
-                            color: login.pal.ink
+                            color: "#141414"
                             font.family: login.serif
                             font.pixelSize: Math.round(parent.width * 0.6)
                         }
@@ -482,7 +485,7 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         visible: login.qrState === "scanned" || login.qrState === "expired"
-                        color: login.pal.canvas
+                        color: "#F2F1ED"
                         opacity: 0.94
                         Column {
                             anchors.centerIn: parent
@@ -493,7 +496,7 @@ Item {
                                 horizontalAlignment: Text.AlignHCenter
                                 text: login.qrState === "scanned" ? "请于掌端确认"
                                     : login.qrState === "expired" ? "码纹已逾时" : "码纹不可用"
-                                color: login.pal.ink
+                                color: "#141414"
                                 font.family: login.serif
                                 font.pixelSize: 22
                             }
@@ -502,7 +505,7 @@ Item {
                                 horizontalAlignment: Text.AlignHCenter
                                 text: login.qrState === "scanned" ? "确认后即自动入室"
                                     : "点击左侧「刷新码纹」重新获取"
-                                color: login.pal.ink3
+                                color: "#5C141414"
                                 font.family: login.serif
                                 font.pixelSize: 12
                                 wrapMode: Text.WordWrap
@@ -515,13 +518,17 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 4
-                    Text {
+                    Image {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "静 听 · 入 室"
-                        color: login.pal.ink2
-                        font.family: login.serif
-                        font.pixelSize: 13
-                        font.letterSpacing: 3
+                        width: 176
+                        height: 34
+                        source: login.darkTheme
+                            ? "qrc:/branding/wordmark-ink.png"
+                            : "qrc:/branding/wordmark.png"
+                        sourceSize.width: 312
+                        sourceSize.height: 60
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter

@@ -685,17 +685,35 @@ Window {
                 onActiveChanged: if (active) root.startSystemMove()
             }
 
-            Text {
+            Row {
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 18
-                text: root.view === "login" ? "STILLE · ARCHIVE / 扉页"
-                    : root.view === "player" ? "STILLE · ARCHIVE / 播放室"
-                    : "STILLE · ARCHIVE / 目录"
-                color: root.pal.ink2
-                font.family: root.serifLatin
-                font.pixelSize: 11
-                font.letterSpacing: 1.6
+                anchors.bottomMargin: 16
+                spacing: 10
+
+                Image {
+                    width: 18
+                    height: 18
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: root.theme === "ink"
+                        ? "qrc:/branding/mark-ink.png"
+                        : "qrc:/branding/mark-paper.png"
+                    sourceSize.width: 36
+                    sourceSize.height: 36
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.view === "login" ? "STILLE · ARCHIVE / 扉页"
+                        : root.view === "player" ? "STILLE · ARCHIVE / 播放室"
+                        : "STILLE · ARCHIVE / 目录"
+                    color: root.pal.ink2
+                    font.family: root.serifLatin
+                    font.pixelSize: 11
+                    font.letterSpacing: 1.6
+                }
             }
 
             Row {
@@ -950,6 +968,7 @@ Window {
                 }
                 pal: root.pal
                 serif: root.serif
+                darkTheme: root.theme === "ink"
                 onLoggedIn: (nick) => root.handleLoggedIn(nick)
                 onGuestEntered: root.view = "home"
                 sessionActive: root.loggedIn

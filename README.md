@@ -1,5 +1,7 @@
 # SparkMusic
 
+![SparkMusic](branding/wordmark.svg)
+
 [![ci](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml)
 
 Three related projects in one repository. They share the same recovered route

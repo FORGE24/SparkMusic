@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 64" width="340" height="64">
+  
+  <g transform="translate(8, 0)">
+    <line x1="8" y1="32" x2="22" y2="32" stroke="#EAE8E3" stroke-width="1.4" />
+    <line x1="42" y1="32" x2="56" y2="32" stroke="#6B6862" stroke-width="1" />
+    <path d="M 32 13 A 19 19 0 1 1 13 32" fill="none" stroke="#EAE8E3" stroke-width="1.75" />
+    <path d="M 45 32 A 13 13 0 0 1 32 45" fill="none" stroke="#EAE8E3" stroke-width="1.2" />
+    <path d="M 32 22 C 32 28.5 35.5 32 42 32 C 35.5 32 32 35.5 32 42 C 32 35.5 28.5 32 22 32 C 28.5 32 32 28.5 32 22 Z" fill="#D94126" />
+  </g>
+
+  
+  <line x1="78" y1="18" x2="78" y2="46" stroke="#3A3835" stroke-width="1" />
+
+  
+  <text x="96" y="38.5" font-family="&#39;Cormorant Garamond&#39;, &#39;Georgia&#39;, &#39;Times New Roman&#39;, serif" font-size="22" font-weight="600" letter-spacing="4" fill="#EAE8E3">SPARK</text>
+
+  
+  <path d="M 204 27 C 204 30.2 205.8 32 209 32 C 205.8 32 204 33.8 204 37 C 204 33.8 202.2 32 199 32 C 202.2 32 204 30.2 204 27 Z" fill="#D94126" />
+
+  
+  <text x="220" y="38" font-family="&#39;Inter&#39;, &#39;Helvetica Neue&#39;, &#39;PingFang SC&#39;, sans-serif" font-size="14" font-weight="400" letter-spacing="5" fill="#A9A6A0">MUSIC</text>
+</svg>

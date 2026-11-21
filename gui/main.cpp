@@ -5,6 +5,7 @@
 // (`--screenshot out.png`) so the UI can be checked headlessly.
 
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
@@ -19,6 +20,7 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(QStringLiteral(":/branding/icon-paper.png")));
     app.setOrganizationName(QStringLiteral("SparkMusic"));
     app.setApplicationName(QStringLiteral("STILLE"));
 
