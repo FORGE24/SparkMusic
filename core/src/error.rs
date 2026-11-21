@@ -38,3 +38,9 @@ impl CoreError {
         })
     }
 }
+
+impl From<sparkmusic_protocol::CryptoError> for CoreError {
+    fn from(value: sparkmusic_protocol::CryptoError) -> Self {
+        CoreError::Crypto(value.to_string())
+    }
+}

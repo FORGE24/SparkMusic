@@ -12,7 +12,8 @@ Android build.
 
 ## core + gui — desktop client
 
-`core/` speaks the eapi/weapi/linuxapi envelopes, persists favourites, history,
+`protocol/` holds the request envelopes and the route catalog, shared by `core/`
+and `api/` (no duplicated crypto). `core/` speaks eapi/weapi/linuxapi, persists favourites, history,
 playlist/lyric caches and the session in SQLite, and exposes a
 `SparkMusicClient` QObject as `build/libsparkmusic_core.so`. `gui/` is the Qt
 Quick shell (paper/ink themes, login by QR, SMS or cookie) and links that

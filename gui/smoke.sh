@@ -28,7 +28,9 @@ step "build (cargo core + Qt shell)"
 cmake --build gui/build >/dev/null
 
 step "rust unit tests"
+cargo test --quiet --manifest-path "$ROOT/protocol/Cargo.toml" 2>&1 | grep -E "^test result" || true
 cargo test --quiet --manifest-path "$ROOT/core/Cargo.toml" 2>&1 | grep -E "^test result" || true
+cargo test --quiet --manifest-path "$ROOT/api/Cargo.toml" 2>&1 | grep -E "^test result" | head -3 || true
 
 step "dynamic linkage"
 readelf -d gui/build/sparkmusic | grep -q 'libsparkmusic_core.so.0' \

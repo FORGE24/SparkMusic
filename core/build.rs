@@ -16,7 +16,7 @@ fn main() {
         copy_dir(&generated, &stable).expect("copy generated headers");
     }
 
-    println!("cargo:rerun-if-changed=assets/routes.json");
+    println!("cargo:rerun-if-changed=../protocol/assets/routes.json");
 }
 
 fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {

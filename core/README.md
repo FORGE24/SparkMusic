@@ -31,6 +31,7 @@ module, and playback. See “Roadmap”.
 ## Requirements
 
 * Rust 1.85+ (edition 2021)
+* [`protocol/`](../protocol) — envelopes and catalog, consumed as a path dependency
 * Qt 6.5+ (built and verified against **Qt 6.11.2** from `../qt611`)
 * A C++20 compiler and CMake ≥ 3.21 for C++ consumers
 

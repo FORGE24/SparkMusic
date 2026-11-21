@@ -10,16 +10,12 @@ license = "MIT"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-aes = "0.8"
+sparkmusic-protocol = { path = "../protocol" }
 base64 = "0.22"
-cbc = "0.1"
-cipher = { version = "0.4", features = ["block-padding", "alloc"] }
 cxx = "1.0"
 cxx-qt = "0.10"
 cxx-qt-lib = "0.10"
 hex = "0.4.3"
-md-5 = "0.10"
-num-bigint = "0.4"
 qrcode = "0.15.0"
 rand = "0.8"
 rusqlite = { version = "0.40.2", features = ["bundled"] }

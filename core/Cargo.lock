@@ -934,23 +934,35 @@ checksum = "3244542535d5de959d90ec55d1b5ff0fd2bb7b1310223907d5f11932847f7b59"
 name = "sparkmusic-core"
 version = "0.1.0"
 dependencies = [
- "aes",
  "base64 0.22.1",
- "cbc",
- "cipher",
  "cxx",
  "cxx-qt",
  "cxx-qt-build",
  "cxx-qt-lib",
  "hex",
- "md-5",
- "num-bigint",
  "qrcode",
  "rand",
  "rusqlite",
  "serde",
  "serde_json",
+ "sparkmusic-protocol",
  "ureq",
+]
+
+[[package]]
+name = "sparkmusic-protocol"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "base64 0.22.1",
+ "cbc",
+ "cipher",
+ "hex",
+ "md-5",
+ "num-bigint",
+ "rand",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

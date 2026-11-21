@@ -54,3 +54,9 @@ impl From<reqwest::Error> for Error {
         Error::Upstream(value.to_string())
     }
 }
+
+impl From<sparkmusic_protocol::CryptoError> for Error {
+    fn from(value: sparkmusic_protocol::CryptoError) -> Self {
+        Error::Crypto(value.to_string())
+    }
+}

@@ -1520,26 +1520,37 @@ dependencies = [
 name = "sparkmusic-api"
 version = "0.1.0"
 dependencies = [
- "aes",
  "anyhow",
  "axum",
- "base64 0.22.1",
- "cbc",
- "cipher",
  "hex",
  "http-body-util",
- "md-5",
- "num-bigint",
  "rand 0.8.8",
  "reqwest",
  "serde",
  "serde_json",
+ "sparkmusic-protocol",
  "thiserror",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "sparkmusic-protocol"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "base64 0.22.1",
+ "cbc",
+ "cipher",
+ "hex",
+ "md-5",
+ "num-bigint",
+ "rand 0.8.8",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

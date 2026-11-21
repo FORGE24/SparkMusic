@@ -4,6 +4,28 @@
 //! weapi = AES-128-CBC twice (preset key, then a random secret) + textbook RSA,
 //! linuxapi = AES-128-ECB over `{method,url,params}`.
 
+
+/// Errors raised while building an envelope.
+#[derive(Debug, Clone)]
+pub enum CryptoError {
+    Crypto(String),
+    Json(String),
+}
+
+impl std::fmt::Display for CryptoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CryptoError::Crypto(msg) => write!(f, "{msg}"),
+            CryptoError::Json(msg) => write!(f, "{msg}"),
+        }
+    }
+}
+
+impl std::error::Error for CryptoError {}
+
+/// Result alias for envelope construction.
+pub type CryptoResult<T> = Result<T, CryptoError>;
+
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine as _;
 use md5::{Digest, Md5};
@@ -12,7 +34,6 @@ use rand::distributions::Alphanumeric;
 use rand::Rng;
 use serde_json::{Map, Value};
 
-use crate::error::{CoreError, CoreResult};
 
 pub const WEAPI_PRESET_KEY: &[u8] = b"0CoJUm6Qyw8W8jud";
 pub const WEAPI_IV: &[u8] = b"0102030405060708";
@@ -26,8 +47,8 @@ const WEAPI_PUBKEY_HEX: &str = "00e0b509f6259df8642dbc35662901477df22677ec152b5f
 9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b\
 3ece0462db0a22b8e7";
 
-fn crypto_error(message: impl Into<String>) -> CoreError {
-    CoreError::Crypto(message.into())
+fn crypto_error(message: impl Into<String>) -> CryptoError {
+    CryptoError::Crypto(message.into())
 }
 
 pub fn md5_hex(data: &[u8]) -> String {
@@ -38,7 +59,7 @@ pub fn md5_bytes(data: &[u8]) -> Vec<u8> {
     Md5::digest(data).to_vec()
 }
 
-pub fn aes_ecb_encrypt(data: &[u8], key: &[u8]) -> CoreResult<Vec<u8>> {
+pub fn aes_ecb_encrypt(data: &[u8], key: &[u8]) -> CryptoResult<Vec<u8>> {
     use aes::cipher::block_padding::Pkcs7;
     use aes::cipher::{BlockEncryptMut, KeyInit};
     let cipher = aes::Aes128::new_from_slice(key)
@@ -46,7 +67,7 @@ pub fn aes_ecb_encrypt(data: &[u8], key: &[u8]) -> CoreResult<Vec<u8>> {
     Ok(cipher.encrypt_padded_vec_mut::<Pkcs7>(data))
 }
 
-pub fn aes_cbc_encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> CoreResult<Vec<u8>> {
+pub fn aes_cbc_encrypt(data: &[u8], key: &[u8], iv: &[u8]) -> CryptoResult<Vec<u8>> {
     use aes::cipher::block_padding::Pkcs7;
     use aes::cipher::{BlockEncryptMut, KeyIvInit};
     if iv.len() != 16 {
@@ -77,8 +98,8 @@ pub fn rsa_encrypt(text: &str) -> String {
     format!("{encrypted:0256x}")
 }
 
-pub fn json_text(params: &Map<String, Value>) -> CoreResult<String> {
-    serde_json::to_string(params).map_err(|e| CoreError::Json(e.to_string()))
+pub fn json_text(params: &Map<String, Value>) -> CryptoResult<String> {
+    serde_json::to_string(params).map_err(|e| CryptoError::Json(e.to_string()))
 }
 
 /// md5("nobody" + url + "use" + json + "md5forencrypt").
@@ -86,7 +107,7 @@ pub fn eapi_digest(url: &str, text: &str) -> String {
     md5_hex(format!("nobody{url}use{text}md5forencrypt").as_bytes())
 }
 
-pub fn eapi_encrypt(url: &str, params: &Map<String, Value>) -> CoreResult<String> {
+pub fn eapi_encrypt(url: &str, params: &Map<String, Value>) -> CryptoResult<String> {
     let text = json_text(params)?;
     let digest = eapi_digest(url, &text);
     let message = format!("{url}{EAPI_SEPARATOR}{text}{EAPI_SEPARATOR}{digest}");
@@ -95,7 +116,7 @@ pub fn eapi_encrypt(url: &str, params: &Map<String, Value>) -> CoreResult<String
 }
 
 /// Returns `(params, encSecKey)` for a weapi body.
-pub fn weapi_encrypt(params: &Map<String, Value>) -> CoreResult<(String, String)> {
+pub fn weapi_encrypt(params: &Map<String, Value>) -> CryptoResult<(String, String)> {
     let text = json_text(params)?;
     let secret = random_secret();
     let first = aes_cbc_encrypt(text.as_bytes(), WEAPI_PRESET_KEY, WEAPI_IV)?;
@@ -103,7 +124,7 @@ pub fn weapi_encrypt(params: &Map<String, Value>) -> CoreResult<(String, String)
     Ok((second.to_base64_string(), rsa_encrypt(&secret)))
 }
 
-pub fn linuxapi_encrypt(url: &str, params: &Map<String, Value>) -> CoreResult<String> {
+pub fn linuxapi_encrypt(url: &str, params: &Map<String, Value>) -> CryptoResult<String> {
     let mut payload = Map::new();
     payload.insert("method".into(), Value::String("POST".into()));
     payload.insert("url".into(), Value::String(url.into()));

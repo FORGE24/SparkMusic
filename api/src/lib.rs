@@ -8,9 +8,9 @@
 //! * [`api`] — the Axum router and handlers
 //! * [`config`] / [`error`] — runtime configuration and error mapping
 
+pub use sparkmusic_protocol::{catalog, crypto};
+
 pub mod api;
-pub mod catalog;
 pub mod config;
-pub mod crypto;
 pub mod error;
 pub mod transport;
