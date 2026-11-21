@@ -1,0 +1,24 @@
+include API.md
+include ROUTES.md
+include README.md
+include requirements*.txt
+
+recursive-include tests *.py
+recursive-include docs *.rst *.py *.txt *.bat Makefile
+recursive-include scripts *.py
+recursive-include examples *.py
+recursive-include tools *.py
+
+prune build
+prune dist
+prune docs/_build
+
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude cookies.txt
+global-exclude *.apk
+global-exclude *.dex
+global-exclude *.7z
+global-exclude *.rar
+global-exclude *.log

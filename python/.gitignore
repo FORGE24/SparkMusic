@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+extracted/all_strings.txt
+dist/
+build/
+*.egg-info/

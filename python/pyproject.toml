@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netease-api-recovered"
+version = "1.0.0"
+description = "Class-style Python client for the NetEase Cloud Music API recovered from Android 9.6.30"
+readme = "API.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = ["requests>=2.28"]
+
+[project.optional-dependencies]
+dev = ["pycryptodome>=3.19"]
+
+[project.scripts]
+netease-api = "netease_api.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["netease_api*"]

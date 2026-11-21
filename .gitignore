@@ -1,5 +1,22 @@
-/target
-/.cargo-home
-/gui/build
+# Rust
+**/target/
+**/.cargo-home
+**/.cargo-home/
+**/.ccache/
+Cargo.lock.bak
+
+# Qt / CMake
+**/gui/build/
+**/build/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+python/extracted/all_strings.txt
+
+# local state
+.testdata/
 *.log
-.testdata
+/.cargo-home
+.cargo-home
