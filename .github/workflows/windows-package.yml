@@ -94,9 +94,8 @@ jobs:
             $file = Join-Path "build-windows" $name
             if (Test-Path $file) {
               $found = $true
-              Get-Content -Path $file -Tail 60 | ForEach-Object {
-                Write-Host "::error title=CMake::$($_)"
-              }
+              $text = (Get-Content -Path $file -Tail 200) -join " || "
+              Write-Host "::error title=CMake $name::$text"
             }
           }
           if (-not $found) {

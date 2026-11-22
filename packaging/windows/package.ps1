@@ -70,9 +70,8 @@ function Fail {
             foreach ($name in @("CMakeFiles\CMakeConfigureLog.yaml", "CMakeFiles\CMakeError.log")) {
                 $log = Join-Path $build.Value $name
                 if (Test-Path $log) {
-                    Get-Content -Path $log -Tail 30 | ForEach-Object {
-                        Write-Host "::error title=CMake::$($_)"
-                    }
+                    $text = (Get-Content -Path $log -Tail 150) -join " || "
+                    Write-Host "::error title=CMake::$text"
                 }
             }
         }
