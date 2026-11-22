@@ -24,8 +24,8 @@ contents:
     dst: /usr/bin/sparkmusic
     file_info:
       mode: 0755
-  - src: staging/usr/lib/libsparkmusic_core.so.0.1.0
-    dst: /usr/lib/libsparkmusic_core.so.0.1.0
+  - src: staging/usr/lib/libsparkmusic_core.so.0.*
+    dst: /usr/lib/
     file_info:
       mode: 0644
   - src: /usr/lib/libsparkmusic_core.so.0
