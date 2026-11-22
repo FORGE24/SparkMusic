@@ -32,6 +32,5 @@ jobs:
       - fedora-44-aarch64
       - fedora-45-x86_64
       - fedora-45-aarch64
-      - fedora-rawhide-x86_64
       - rhel-10-x86_64
       - rhel-10-aarch64
