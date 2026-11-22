@@ -70,6 +70,9 @@ Window {
     // (JS numbers are exact up to 2^53), so never narrow this to `int`.
     property double userUid: 0
     property string likedPlaylistId: ""
+    property string quality: "exhigh"
+    property bool lyricFollow: true
+    readonly property string appVersion: typeof launchVersion !== "undefined" ? launchVersion : "0.1.1-beta"
 
     MediaPlayer {
         id: audio
@@ -114,6 +117,8 @@ Window {
         if (typeof launchTheme === "undefined" || launchTheme === "")
             theme = core.setting("theme") || "paper";
         gridOn = (core.setting("grid") || "0") === "1";
+        quality = core.setting("quality") || "exhigh";
+        lyricFollow = (core.setting("lyricFollow") || "1") === "1";
         var savedVolume = core.setting("volume");
         if (savedVolume.length > 0) {
             var parsedVolume = Number(savedVolume);
@@ -354,7 +359,7 @@ Window {
     }
 
     function loadUrl(id) {
-        var raw = core.songUrl(String(id), "exhigh");
+        var raw = core.songUrl(String(id), quality);
         try {
             var data = JSON.parse(raw);
             var first = (data.data || [])[0] || {};
@@ -534,6 +539,14 @@ Window {
     function prevTrack() {
         if (tracks.length === 0) return;
         playTrack((currentIndex - 1 + tracks.length) % tracks.length);
+    }
+
+    function openPlayer() {
+        // Entering the room keeps the current stream untouched; only an empty
+        // queue starts the first track.
+        if (!currentTrack && tracks.length > 0)
+            playTrack(Math.min(currentIndex, tracks.length - 1));
+        view = "player";
     }
 
     function togglePlay() {
@@ -723,13 +736,17 @@ Window {
                 anchors.bottomMargin: 14
                 spacing: 26
 
+                // Now-playing strip: visible on every page except the login
+                // gate, so the catalog/favourites/settings show what is running.
                 Item {
                     visible: root.view !== "login" && root.currentTrack
-                    height: 16
+                    height: 20
                     width: nowRow.width
+
                     Row {
                         id: nowRow
-                        spacing: 8
+                        spacing: 10
+
                         Rectangle {
                             width: 5; height: 5; radius: 2.5
                             color: root.pal.accent
@@ -737,17 +754,47 @@ Window {
                             visible: root.playing
                         }
                         Text {
-                            text: root.playing ? "正在播放" : "已暂停"
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Math.min(implicitWidth, 160)
+                            text: root.currentTrack ? root.currentTrack.title : ""
+                            color: root.pal.ink
+                            font.family: root.serif
+                            font.pixelSize: 12
+                            elide: Text.ElideRight
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Math.min(implicitWidth, 96)
+                            text: root.currentTrack ? root.currentTrack.artist : ""
                             color: root.pal.ink3
-                            font.family: root.serifLatin
-                            font.pixelSize: 11
+                            font.family: root.serif
+                            font.pixelSize: 10
+                            elide: Text.ElideRight
+                        }
+                        Rectangle {
+                            width: 52; height: 2
+                            color: root.pal.faint
+                            anchors.verticalCenter: parent.verticalCenter
+                            Rectangle {
+                                width: parent.width * root.progress
+                                height: 2
+                                color: root.pal.accent
+                            }
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.playing ? "播放中" : "暂停"
+                            color: root.pal.ink3
+                            font.family: root.serif
+                            font.pixelSize: 9
                             font.letterSpacing: 1.2
                         }
                     }
+
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.view = "player"
+                        onClicked: root.openPlayer()
                     }
                 }
 
@@ -1001,6 +1048,7 @@ Window {
                 gridOn: root.gridOn
                 onSectionRequested: (name) => root.section = name
                 onTrackActivated: (index) => root.playTrack(index)
+                onPlayerRequested: root.openPlayer()
                 onThemeRequested: (name) => root.theme = name
                 onGridRequested: (on) => root.gridOn = on
                 onSearchRequested: (query) => root.searchModel(query)
@@ -1022,6 +1070,19 @@ Window {
                 }
                 searchHistory: root.searchHistory
                 cacheNote: root.cacheNote
+                quality: root.quality
+                lyricFollow: root.lyricFollow
+                volume: root.volume
+                appVersion: root.appVersion
+                onQualityRequested: (level) => {
+                    root.quality = level;
+                    core.setSetting("quality", level);
+                }
+                onLyricFollowRequested: (on) => {
+                    root.lyricFollow = on;
+                    core.setSetting("lyricFollow", on ? "1" : "0");
+                }
+                onVolumeRequested: (value) => root.volume = value
                 exportNote: root.exportNote
                 onHistoryQueryRequested: (query) => {
                     root.section = "search";
@@ -1065,6 +1126,7 @@ Window {
                 lyrics: root.lyrics
                 playbackNote: root.playbackNote
                 favorited: root.currentFavorited
+                lyricFollow: root.lyricFollow
                 onFavoriteToggled: root.toggleFavorite()
                 onVolumeRequested: (value) => root.volume = value
                 onTogglePlay: root.togglePlay()

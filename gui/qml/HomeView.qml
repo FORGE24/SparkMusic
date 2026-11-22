@@ -26,11 +26,19 @@ Item {
     property var searchHistory: []
     property var accountPlaylists: []
     property string accountNote: ""
+    property string quality: "exhigh"
+    property bool lyricFollow: true
+    property real volume: 0.68
+    property string appVersion: ""
     property string cacheNote: ""
     property string exportNote: ""
 
     signal sectionRequested(string name)
     signal trackActivated(int index)
+    signal playerRequested()
+    signal qualityRequested(string level)
+    signal lyricFollowRequested(bool on)
+    signal volumeRequested(real value)
     signal searchTrackActivated(int index)
     signal themeRequested(string name)
     signal gridRequested(bool on)
@@ -146,7 +154,8 @@ Item {
                     pal: home.pal; serif: home.serif
                     latin: "Player"; zh: "进入播放室"
                     zhSize: 13
-                    onClicked: home.trackActivated(Math.max(0, home.indexOf(home.currentTrack)))
+                    // Only navigates; playTrack() would restart the audio.
+                    onClicked: home.playerRequested()
                 }
                 SwissButton {
                     width: parent.width
@@ -727,7 +736,9 @@ Item {
                         Repeater {
                             model: [
                                 { key: "纸墨主题", options: ["宣纸白", "玄墨黑"] },
-                                { key: "建筑网格", options: ["显示", "隐藏"] }
+                                { key: "建筑网格", options: ["显示", "隐藏"] },
+                                { key: "播放音质", options: ["标准", "较高", "极高", "无损"] },
+                                { key: "歌词跟随", options: ["跟随", "手动"] }
                             ]
                             Item {
                                 width: content.width
@@ -764,6 +775,95 @@ Item {
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        // Volume: dragging writes through the same debounced
+                        // path as the player slider.
+                        Item {
+                            width: content.width
+                            height: 52
+                            Rectangle {
+                                anchors.bottom: parent.bottom
+                                width: parent.width; height: 1
+                                color: home.pal.faint
+                            }
+                            Text {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "聆听音量"
+                                color: home.pal.ink2
+                                font.family: home.serif
+                                font.pixelSize: 13
+                            }
+                            Text {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Math.round(home.volume * 100) + "%"
+                                color: home.pal.ink3
+                                font.family: home.serif
+                                font.pixelSize: 11
+                            }
+                            Item {
+                                width: 180; height: 22
+                                anchors.right: parent.right
+                                anchors.rightMargin: 56
+                                anchors.verticalCenter: parent.verticalCenter
+                                Rectangle {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width; height: 2
+                                    color: home.pal.faint
+                                }
+                                Rectangle {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width * home.volume; height: 2
+                                    color: home.pal.ink2
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    function setFromX(x) {
+                                        home.volumeRequested(Math.max(0, Math.min(1, x / width)));
+                                    }
+                                    onPressed: (mouse) => setFromX(mouse.x)
+                                    onPositionChanged: (mouse) => { if (pressed) setFromX(mouse.x); }
+                                    onWheel: (wheel) => home.volumeRequested(
+                                        Math.max(0, Math.min(1, home.volume + (wheel.angleDelta.y > 0 ? 0.05 : -0.05))));
+                                }
+                            }
+                        }
+
+                        Column {
+                            width: content.width
+                            spacing: 6
+                            Text {
+                                text: "关于 · ABOUT"
+                                color: home.pal.ink3
+                                font.family: home.serifLatin
+                                font.pixelSize: 9
+                                font.letterSpacing: 1.8
+                            }
+                            Text {
+                                text: "SparkMusic " + home.appVersion
+                                color: home.pal.ink2
+                                font.family: home.serif
+                                font.pixelSize: 12
+                            }
+                            Text {
+                                width: parent.width
+                                text: "Apache-2.0 · 思源宋体 / Noto Serif · Cormorant Garamond（OFL）"
+                                color: home.pal.ink3
+                                font.family: home.serif
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+                            Text {
+                                width: parent.width
+                                text: "曲库与封面版权归原权利人；客户端只调用接口，不存储音频文件。"
+                                color: home.pal.ink3
+                                font.family: home.serif
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
                             }
                         }
                     }
@@ -923,6 +1023,12 @@ Item {
         if (option === "玄墨黑") return themeName === "ink";
         if (option === "显示") return gridOn;
         if (option === "隐藏") return !gridOn;
+        if (option === "标准") return quality === "standard";
+        if (option === "较高") return quality === "higher";
+        if (option === "极高") return quality === "exhigh";
+        if (option === "无损") return quality === "lossless";
+        if (option === "跟随") return lyricFollow;
+        if (option === "手动") return !lyricFollow;
         return true;
     }
 
@@ -931,5 +1037,11 @@ Item {
         else if (option === "玄墨黑") themeRequested("ink");
         else if (option === "显示") gridRequested(true);
         else if (option === "隐藏") gridRequested(false);
+        else if (option === "标准") qualityRequested("standard");
+        else if (option === "较高") qualityRequested("higher");
+        else if (option === "极高") qualityRequested("exhigh");
+        else if (option === "无损") qualityRequested("lossless");
+        else if (option === "跟随") lyricFollowRequested(true);
+        else if (option === "手动") lyricFollowRequested(false);
     }
 }

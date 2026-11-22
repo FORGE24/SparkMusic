@@ -34,24 +34,15 @@ Item {
         anchors.left: control.rightAligned ? undefined : parent.left
         spacing: 2
         // A short damped press; amplitude is deliberately tiny.
-        y: control.pressed ? 2 : 0
-        scale: control.pressed ? 0.988 : 1
+        y: control.pressed ? 1 : 0
+        scale: control.pressed ? 0.994 : 1
         transform: Translate { x: control.labelShiftX }
+        // Short, monotonic press: elastic easing read as a twitch on click.
         Behavior on y {
-            NumberAnimation {
-                duration: 520
-                easing.type: Easing.OutElastic
-                easing.amplitude: 0.12
-                easing.period: 1.4
-            }
+            NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
         }
         Behavior on scale {
-            NumberAnimation {
-                duration: 520
-                easing.type: Easing.OutElastic
-                easing.amplitude: 0.10
-                easing.period: 1.4
-            }
+            NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
         }
 
         Text {
@@ -106,9 +97,8 @@ Item {
             target: control
             property: "labelShiftX"
             to: 0
-            duration: 300
-            easing.type: Easing.OutBack
-            easing.overshoot: 1.1
+            duration: 220
+            easing.type: Easing.OutCubic
         }
     }
 

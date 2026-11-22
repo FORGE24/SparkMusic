@@ -110,6 +110,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("launchPlay"), initialPlay);
     engine.rootContext()->setContextProperty(QStringLiteral("launchLoginMode"), loginMode);
     engine.rootContext()->setContextProperty(QStringLiteral("launchDemoAccount"), demoAccount);
+    engine.rootContext()->setContextProperty(QStringLiteral("launchVersion"),
+                                             QStringLiteral(SPARKMUSIC_VERSION));
 
     engine.load(QUrl(QStringLiteral("qrc:/SparkMusic/qml/Main.qml")));
     if (engine.rootObjects().isEmpty()) {

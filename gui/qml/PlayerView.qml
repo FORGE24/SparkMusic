@@ -18,6 +18,7 @@ Item {
     property int activeIndex: 0
     property string playbackNote: ""
     property bool favorited: false
+    property bool lyricFollow: true
     property real volume: 0.68
     property real titleReveal: 1
     property real artistReveal: 1
@@ -47,6 +48,7 @@ Item {
 
     // Keep the line being sung at the vertical centre of the lyric stage.
     function centerActive() {
+        if (!lyricFollow) return;
         if (activeIndex >= 0 && activeIndex < lyricsView.count)
             lyricsView.positionViewAtIndex(activeIndex, ListView.Center);
     }
@@ -69,6 +71,7 @@ Item {
         Qt.callLater(centerActive);
     }
     onHeightChanged: Qt.callLater(centerActive)
+    onVisibleChanged: if (visible) Qt.callLater(centerActive)
     onTrackChanged: {
         if (!track) return;
         titleReveal = 0;
@@ -380,9 +383,11 @@ Item {
                 topMargin: height * 0.5
                 bottomMargin: height * 0.5
                 boundsBehavior: Flickable.StopAtBounds
+                // A longer, slower glide makes each line change legible
+                // instead of snapping between two rows.
                 Behavior on contentY {
                     enabled: !lyricsView.dragging && !lyricsView.flicking
-                    NumberAnimation { duration: 460; easing.type: Easing.OutCubic }
+                    NumberAnimation { duration: 620; easing.type: Easing.OutQuint }
                 }
                 onCountChanged: Qt.callLater(player.centerActive)
                 delegate: LyricLine {

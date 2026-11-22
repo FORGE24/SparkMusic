@@ -60,6 +60,18 @@ Item {
     // Soft-focus ghosts: three offset copies of the line at low opacity read
     // as a light blur without depending on a GPU-only effect backend. They
     // fade out as `sharpen` reaches 1.
+    // A quiet wash marks the current line so the scroll target is obvious
+    // even when two neighbouring lines have similar contrast.
+    Rectangle {
+        id: lyricWash
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: parent.implicitHeight
+        color: line.pal.ultra
+        opacity: line.active ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
+    }
+
     Repeater {
         model: 3
         Text {
@@ -100,8 +112,8 @@ Item {
 
                 opacity: !line.revealed ? 0
                     : line.active ? 1
-                    : (line.distance < 0 ? 0.60
-                    : (line.distance > 0 ? 0.54 : 0.40))
+                    : (Math.abs(line.distance) === 1 ? 0.50
+                    : (line.distance < 0 ? 0.32 : 0.28))
                 // Flow owns x/y; use a transform so the stagger never breaks
                 // the line's layout.
                 property real driftY: !line.revealed ? 4
