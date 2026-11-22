@@ -2,7 +2,7 @@
 %global _hardened_build 1
 
 Name:           sparkmusic
-Version:        0.1.2
+Version:        0.1.3
 Release:        1%{?dist}
 Summary:        Qt Quick desktop client for the NetEase Cloud Music API
 
@@ -70,6 +70,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/sparkmusic.desktop
 %doc NOTICE THIRD_PARTY.md
 
 %changelog
+* Sun Nov 22 2026 FORGE24 <CHENshidi2021@outlook.com> - 0.1.3-1
+- Shell fixes: no restart when re-entering the player, calmer press motion,
+  clearer lyric scrolling, header now-playing strip, expanded settings.
+- Package the core in %%{_libdir} via -DSPARKMUSIC_LIBDIR=%%{_lib}.
+
 * Sun Nov 22 2026 FORGE24 <CHENshidi2021@outlook.com> - 0.1.2-1
 - Initial package: Qt Quick shell, Rust core, QR/SMS/cookie login, SQLite
   favourites and history.
