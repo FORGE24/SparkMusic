@@ -95,11 +95,11 @@ if (MSVC)
     # Rust std's futex uses WaitOnAddress/WakeByAddressSingle, which live in
     # synchronization.lib rather than the default kernel32 import set.
     target_link_libraries(sparkmusic_core PRIVATE
-        ws2_32 userenv bcrypt bcryptprimitives advapi32 ole32 shell32 synchronization)
+        ws2_32 userenv bcrypt advapi32 ole32 shell32 synchronization)
 elseif (WIN32)
     target_link_libraries(sparkmusic_core PRIVATE
         "-Wl,--whole-archive" "${RUST_STATIC_LIB}" "-Wl,--no-whole-archive"
-        ws2_32 userenv bcrypt bcryptprimitives advapi32 ole32 shell32 synchronization)
+        ws2_32 userenv bcrypt advapi32 ole32 shell32 synchronization)
 else()
     target_link_libraries(sparkmusic_core PRIVATE
         "-Wl,--whole-archive" "${RUST_STATIC_LIB}" "-Wl,--no-whole-archive"
