@@ -1,0 +1,5 @@
+build/
+build-android/
+build-*/
+*.user
+.DS_Store

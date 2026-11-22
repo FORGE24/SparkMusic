@@ -4,13 +4,14 @@
 
 [![ci](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml/badge.svg)](https://github.com/FORGE24/SparkMusic/actions/workflows/ci.yml)
 
-Three related projects in one repository. They share the same recovered route
+Four related projects in one repository. They share the same recovered route
 catalog: **1,293 endpoints** extracted from the NetEase Cloud Music 9.6.30
 Android build.
 
 | Path | Role | Stack | License |
 |---|---|---|---|
 | [`core/`](core) | Desktop client (STILLE shell) and the Qt-facing core | Rust + cxx-qt + Qt Quick | Apache-2.0 |
+| [`android/`](android) | Android client (STILLE mobile) | Qt Quick/QML + Rust core | Apache-2.0 |
 | [`api/`](api) | HTTP/JSON service over the catalog | Rust + Axum | Apache-2.0 |
 | [`python/`](python) | Reference client + DEX recovery tooling | Python 3.9+ | MIT |
 
@@ -52,6 +53,27 @@ DLL checks and the portable/installer layout.
 
 Details: [`core/README.md`](core/README.md) and [`gui/README.md`](gui/README.md).
 
+## android — mobile client
+
+`android/` is the Qt Quick mobile shell wired to the same Rust core. It loads
+the real NetEase 热歌榜, search, lyrics, covers and play URLs, plays through
+Qt Multimedia, and supports real QR/SMS/Cookie login with SQLite session and
+favourites persistence. Typography is all-serif: Cormorant Garamond +
+STILLE Song (Noto Serif SC); the mark is the supplied line SVG.
+
+```console
+$ export ANDROID_NDK_ROOT=/path/to/android-sdk/ndk/27.2.12479018
+$ export QMAKE=/path/to/Qt/6.11.2/android_arm64_v8a/bin/qmake
+$ export RUSTUP_HOME=/path/to/writable/rustup
+$ export CARGO_HOME=/path/to/writable/cargo-home
+$ rustup target add aarch64-linux-android
+$ ./android/scripts/build-core-android.sh
+```
+
+Then configure `android/` with Qt's Android kit and build the
+`sparkmusic_make_apk` target. Full setup, SDK/NDK versions, login and font notes
+are in [`android/README.md`](android/README.md).
+
 ## api — HTTP service
 
 The same catalog behind plain HTTP/JSON, with a generic `/call/{route}` proxy
@@ -84,10 +106,12 @@ Details: [`python/README.md`](python/README.md) and [`python/API.md`](python/API
 
 ## Licensing
 
-* `core/` and `api/` — **Apache-2.0** (see [`LICENSE`](LICENSE)). Commercial use
-  is permitted under that license; the desktop shell links **Qt 6** dynamically,
-  so distributing binaries additionally requires compliance with Qt's
-  **LGPL-3.0** (or a Qt commercial license).
+* `core/`, `android/` and `api/` — **Apache-2.0** (see [`LICENSE`](LICENSE)).
+  Commercial use is permitted under that license; the desktop and Android shells
+  link **Qt 6** dynamically, so distributing binaries additionally requires
+  compliance with Qt's **LGPL-3.0** (or a Qt commercial license).
+* The Android shell carries Cormorant Garamond and Noto Serif SC derivatives
+  under the SIL **OFL-1.1**; see [`android/fonts/OFL.txt`](android/fonts/OFL.txt).
 * `python/` — **MIT**, licensed independently (see [`python/LICENSE`](python/LICENSE)).
 * Dependencies keep their own licenses; the full list is in
   [`THIRD_PARTY.md`](THIRD_PARTY.md), and attribution notes are in [`NOTICE`](NOTICE).

@@ -1,0 +1,3610 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="paper" data-orientation="portrait">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>静听 · STILLE — 移动端交互原型</title>
+
+  <!-- Strictly Songti + Classical Serif Typography (ZERO sans-serif anywhere) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+SC:wght@200;300;400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & DUAL PAPER / INK THEMES
+       ========================================================================== */
+    :root {
+      --font-serif: "Cormorant Garamond", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+      --font-latin: "Cormorant Garamond", Georgia, serif;
+      --ease-swiss: cubic-bezier(0.22, 1, 0.36, 1);
+      --vermilion: #D93829; /* Sole Swiss Accent Color */
+    }
+
+    /* 宣纸 (Paper / Light Default) */
+    [data-theme="paper"] {
+      --studio-bg: #E7E5DF;
+      --studio-ink: #141414;
+      --studio-muted: rgba(20, 20, 20, 0.48);
+      --studio-hairline: rgba(20, 20, 20, 0.12);
+
+      --bg-canvas: #F2F1ED;
+      --ink-primary: #141414;
+      --ink-secondary: rgba(20, 20, 20, 0.45);
+      --ink-faint: rgba(20, 20, 20, 0.14);
+      --ink-ultra-faint: rgba(20, 20, 20, 0.06);
+      --grid-line: rgba(20, 20, 20, 0.065);
+      --grain-opacity: 0.022;
+
+      --bezel-outer: #2A2927;
+      --bezel-inner: #111111;
+      --bezel-rim: rgba(255, 255, 255, 0.22);
+      --art-warm: #8F4A37;
+      --art-cool: #55666F;
+    }
+
+    /* 玄墨 (Ink / Dark Mode) */
+    [data-theme="ink"] {
+      --studio-bg: #0A0A0B;
+      --studio-ink: #E8E6E1;
+      --studio-muted: rgba(232, 230, 225, 0.45);
+      --studio-hairline: rgba(232, 230, 225, 0.12);
+
+      --bg-canvas: #111112;
+      --ink-primary: #E8E6E1;
+      --ink-secondary: rgba(232, 230, 225, 0.42);
+      --ink-faint: rgba(232, 230, 225, 0.14);
+      --ink-ultra-faint: rgba(232, 230, 225, 0.06);
+      --grid-line: rgba(232, 230, 225, 0.06);
+      --grain-opacity: 0.028;
+
+      --bezel-outer: #27272A;
+      --bezel-inner: #080809;
+      --bezel-rim: rgba(255, 255, 255, 0.13);
+      --art-warm: #C77A62;
+      --art-cool: #889FA8;
+    }
+
+    /* ==========================================================================
+       2. GLOBAL RESET & STRICT SERIF ENFORCEMENT
+       ========================================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-serif);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--studio-bg);
+      color: var(--studio-ink);
+      transition: background-color 0.65s var(--ease-swiss), color 0.65s var(--ease-swiss);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    button,
+    input {
+      background: none;
+      border: none;
+      outline: none;
+      color: inherit;
+      font-family: var(--font-serif);
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    .latin {
+      font-family: var(--font-latin);
+    }
+
+    .vermilion-dot {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--vermilion);
+      flex-shrink: 0;
+    }
+
+    .hidden-el {
+      display: none !important;
+    }
+
+    /* ==========================================================================
+       3. GALLERY STUDIO LAYOUT & OUTER SWISS CONTROL BAR
+       ========================================================================== */
+    .studio-shell {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Minimal Studio Header */
+    .studio-header {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--studio-hairline);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--studio-muted);
+      flex-shrink: 0;
+      z-index: 30;
+      user-select: none;
+    }
+
+    .studio-brand {
+      color: var(--studio-ink);
+      opacity: 0.85;
+    }
+
+    .studio-status-readout {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+    }
+
+    /* Center Phone Mounting Stage */
+    .phone-stage {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Dynamic Viewport Scale Wrapper (keeps internal 390x844 / 812x375 coords exact) */
+    .phone-scale-rig {
+      transform-origin: center center;
+      transition: transform 0.55s var(--ease-swiss);
+      will-change: transform;
+    }
+
+    /* Bottom Outer Studio Control Strip */
+    .studio-controls {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px 22px;
+      padding-top: 12px;
+      border-top: 1px solid var(--studio-hairline);
+      flex-shrink: 0;
+      z-index: 30;
+      user-select: none;
+    }
+
+    .studio-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 2px;
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      color: var(--studio-muted);
+      cursor: pointer;
+      transition: color 0.3s var(--ease-swiss), opacity 0.3s var(--ease-swiss);
+    }
+
+    .studio-btn:hover,
+    .studio-btn.is-active {
+      color: var(--studio-ink);
+    }
+
+    .studio-btn.is-active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1px;
+      height: 1px;
+      background-color: var(--studio-ink);
+    }
+
+    .studio-sep {
+      width: 1px;
+      height: 10px;
+      background-color: var(--studio-hairline);
+    }
+
+    /* ==========================================================================
+       4. REALISTIC MATTE TITANIUM / OBSIDIAN SMARTPHONE HARDWARE FRAME
+       ========================================================================== */
+    .phone-hardware {
+      position: relative;
+      width: 414px;   /* 390 screen + 24 bezel */
+      height: 868px;  /* 844 screen + 24 bezel */
+      padding: 12px;
+      border-radius: 56px;
+      background: linear-gradient(145deg, var(--bezel-outer), var(--bezel-inner));
+      border: 1px solid var(--bezel-rim);
+      transition:
+        width 0.65s var(--ease-swiss),
+        height 0.65s var(--ease-swiss),
+        border-radius 0.65s var(--ease-swiss),
+        background 0.65s var(--ease-swiss);
+    }
+
+    /* Hardware side buttons (subtle matte accents) */
+    .hw-btn {
+      position: absolute;
+      background-color: var(--bezel-outer);
+      pointer-events: none;
+      transition: opacity 0.4s var(--ease-swiss);
+    }
+
+    .hw-vol-up { left: -3px; top: 158px; width: 3px; height: 46px; border-radius: 2px 0 0 2px; }
+    .hw-vol-dn { left: -3px; top: 218px; width: 3px; height: 46px; border-radius: 2px 0 0 2px; }
+    .hw-power  { right: -3px; top: 186px; width: 3px; height: 70px; border-radius: 0 2px 2px 0; }
+
+    [data-orientation="landscape"] .phone-hardware {
+      width: 836px;   /* 812 screen + 24 bezel */
+      height: 399px;  /* 375 screen + 24 bezel */
+      border-radius: 52px;
+    }
+
+    [data-orientation="landscape"] .hw-btn {
+      opacity: 0;
+    }
+
+    /* Inner OLED Display Screen (Strict Swiss UI Zone: zero UI cards/pills/shadows) */
+    .phone-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 44px;
+      overflow: hidden;
+      background-color: var(--bg-canvas);
+      color: var(--ink-primary);
+      transition:
+        background-color 0.65s var(--ease-swiss),
+        color 0.65s var(--ease-swiss),
+        border-radius 0.65s var(--ease-swiss);
+    }
+
+    [data-orientation="landscape"] .phone-screen {
+      border-radius: 40px;
+    }
+
+    /* 2% Archival Paper Grain Overlay inside Phone Screen */
+    .screen-grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 60;
+      opacity: var(--grain-opacity);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Dynamic Island Cutout (Top-Center Portrait / Left-Center Landscape) */
+    .dynamic-island {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 108px;
+      height: 30px;
+      border-radius: 20px;
+      background-color: #090909;
+      z-index: 80;
+      pointer-events: none;
+      transition: all 0.55s var(--ease-swiss);
+    }
+
+    [data-orientation="landscape"] .dynamic-island {
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 104px;
+    }
+
+    /* Minimal Serif Status Bar (Portrait Only; Hidden in Landscape StandBy) */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      padding: 16px 26px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--ink-primary);
+      opacity: 0.85;
+      z-index: 70;
+      pointer-events: none;
+      transition: opacity 0.4s var(--ease-swiss);
+    }
+
+    [data-orientation="landscape"] .status-bar {
+      opacity: 0;
+    }
+
+    .status-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* Bottom Home Indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 3px;
+      border-radius: 2px;
+      background-color: var(--ink-primary);
+      opacity: 0.22;
+      z-index: 80;
+      pointer-events: none;
+      transition: width 0.5s var(--ease-swiss), opacity 0.5s var(--ease-swiss);
+    }
+
+    [data-orientation="landscape"] .home-indicator {
+      width: 168px;
+      bottom: 7px;
+      opacity: 0.16;
+    }
+
+    /* ==========================================================================
+       5. SWISS ARCHITECTURAL GRID OVERLAY (4-COL PORTRAIT / 8-COL LANDSCAPE)
+       ========================================================================== */
+    .phone-grid-overlay {
+      position: absolute;
+      inset: 0;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 14px;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.45s var(--ease-swiss);
+    }
+
+    .phone-grid-overlay.is-visible {
+      opacity: 1;
+    }
+
+    .phone-grid-col {
+      height: 100%;
+      border-left: 1px solid var(--grid-line);
+      border-right: 1px solid var(--grid-line);
+    }
+
+    .phone-grid-col.col-extra {
+      display: none;
+    }
+
+    /* Symmetric 48px safe-area margins + 8 columns in Landscape */
+    [data-orientation="landscape"] .phone-grid-overlay {
+      padding: 0 48px;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      column-gap: 16px;
+    }
+
+    [data-orientation="landscape"] .phone-grid-col.col-extra {
+      display: block;
+    }
+
+    /* ==========================================================================
+       6. INTERNAL VIEW SYSTEM (CALM HIGH-DAMPING CROSSFADE)
+       ========================================================================== */
+    .screen-view {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.5s var(--ease-swiss),
+        visibility 0s linear 0.5s;
+    }
+
+    .screen-view.is-active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        opacity 0.5s var(--ease-swiss),
+        visibility 0s linear 0s;
+    }
+
+    /* Enforce Landscape always displays Landscape Player */
+    [data-orientation="landscape"] .portrait-only {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    [data-orientation="portrait"] .landscape-only {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================================================
+       7. VIEW A: PORTRAIT PLAYER (竖屏诗笺 — 左上静 · 中间词 · 右下动)
+       ========================================================================== */
+    .p-player {
+      padding: 64px 24px 28px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Top-Left Static Read-Only Metadata Block (pointer-events: none) */
+    .p-meta-top {
+      pointer-events: none;
+      user-select: none;
+      text-align: left;
+      flex-shrink: 0;
+      transition: opacity 0.45s var(--ease-swiss);
+    }
+
+    .p-meta-top.is-fading {
+      opacity: 0.1;
+    }
+
+    .p-meta-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    /* 36x36px Monochrome Geometric Bauhaus Cover Stamp */
+    .stamp-36 {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--ink-faint);
+      flex-shrink: 0;
+      margin-top: 3px;
+      filter: grayscale(100%) opacity(0.88);
+      overflow: hidden;
+    }
+
+    .p-index-kicker {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+      margin-bottom: 5px;
+    }
+
+    .p-track-title {
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      line-height: 1.35;
+      color: var(--ink-primary);
+      margin-bottom: 3px;
+    }
+
+    .p-track-artist {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--ink-secondary);
+      margin-bottom: 2px;
+    }
+
+    .p-track-spec {
+      margin-top: 8px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      color: var(--ink-secondary);
+    }
+
+    .p-track-time {
+      color: var(--ink-primary);
+      opacity: 0.72;
+    }
+
+    /* Center Breathing Zone (~55% vertical height) */
+    .p-lyric-zone {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px 4px;
+      touch-action: pan-y;
+      cursor: grab;
+      user-select: none;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 1) 14%,
+        rgba(0, 0, 0, 1) 86%,
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 1) 14%,
+        rgba(0, 0, 0, 1) 86%,
+        transparent 100%
+      );
+      transition: opacity 0.45s var(--ease-swiss);
+    }
+
+    .p-lyric-zone:active {
+      cursor: grabbing;
+    }
+
+    .p-lyric-zone.is-switching {
+      opacity: 0;
+    }
+
+    .p-lyric-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .p-lyric-context {
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      line-height: 1.7;
+      color: var(--ink-primary);
+      opacity: 0.28;
+      min-height: 22px;
+      padding: 6px 8px;
+      cursor: pointer;
+      transition: opacity 0.35s var(--ease-swiss);
+    }
+
+    .p-lyric-context:hover {
+      opacity: 0.62;
+    }
+
+    .p-lyric-active {
+      font-size: 26px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      line-height: 1.65;
+      color: var(--ink-primary);
+      padding: 4px 2px;
+      cursor: pointer;
+      transition: opacity 0.45s var(--ease-swiss);
+    }
+
+    .p-lyric-sub {
+      display: block;
+      margin-top: 10px;
+      font-family: var(--font-latin);
+      font-size: 12.5px;
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      color: var(--ink-secondary);
+      line-height: 1.5;
+    }
+
+    /* Subtle swipe directional whisper */
+    .swipe-whisper {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s var(--ease-swiss);
+      white-space: nowrap;
+    }
+
+    .swipe-whisper.is-visible {
+      opacity: 0.72;
+    }
+
+    /* Horizon 1px Swiss Progress Rule (Thumb-Reachable Scrubber) */
+    .p-horizon-wrap {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .p-horizon-track {
+      position: relative;
+      width: 100%;
+      height: 1px;
+      background-color: var(--ink-faint);
+      transition: height 0.25s var(--ease-swiss);
+    }
+
+    .p-horizon-wrap.is-scrubbing .p-horizon-track {
+      height: 3px;
+    }
+
+    .p-horizon-fill {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 1.5px;
+      width: 0%;
+      background-color: var(--ink-primary);
+      transition: height 0.25s var(--ease-swiss);
+    }
+
+    .p-horizon-wrap.is-scrubbing .p-horizon-fill {
+      height: 3px;
+    }
+
+    .p-horizon-tip {
+      position: absolute;
+      left: 0%;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--vermilion);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: transform 0.25s var(--ease-swiss);
+    }
+
+    .p-horizon-wrap.is-scrubbing .p-horizon-tip {
+      transform: translate(-50%, -50%) scale(1.6);
+    }
+
+    /* Floating Tabular Timestamp 24px above thumb while scrubbing */
+    .p-scrub-float {
+      position: absolute;
+      bottom: 40px;
+      left: 0%;
+      transform: translateX(-50%);
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      color: var(--ink-primary);
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.22s var(--ease-swiss);
+    }
+
+    .p-horizon-wrap.is-scrubbing .p-scrub-float {
+      opacity: 0.95;
+    }
+
+    /* Bottom Control Bar (NO TabBar, 44px invisible touch targets) */
+    .p-bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .p-bottom-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .p-bottom-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .p-ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Invisible 44px minimum touch target text button */
+    .touch-text-btn {
+      position: relative;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      color: var(--ink-primary);
+      opacity: 0.54;
+      cursor: pointer;
+      transition: opacity 0.28s var(--ease-swiss);
+    }
+
+    .touch-text-btn:hover,
+    .touch-text-btn:active,
+    .touch-text-btn.is-active {
+      opacity: 1;
+    }
+
+    .touch-text-btn.align-left {
+      justify-content: flex-start;
+      padding-left: 0;
+    }
+
+    .touch-text-btn.align-right {
+      justify-content: flex-end;
+      padding-right: 0;
+    }
+
+    .touch-text-btn .italic-hint {
+      font-family: var(--font-latin);
+      font-size: 12px;
+      font-style: italic;
+      letter-spacing: 0.06em;
+      opacity: 0.75;
+    }
+
+    .p-slash {
+      font-size: 11px;
+      color: var(--ink-faint);
+      user-select: none;
+    }
+
+    /* Minimal Inline Queue Drawer (Pure Canvas + Hairline, Zero Frosted Glass) */
+    .p-queue-overlay {
+      position: absolute;
+      inset: 52px 0 0 0;
+      background-color: var(--bg-canvas);
+      padding: 20px 24px 30px;
+      display: flex;
+      flex-direction: column;
+      z-index: 40;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.42s var(--ease-swiss),
+        visibility 0s linear 0.42s;
+    }
+
+    .p-queue-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        opacity 0.42s var(--ease-swiss),
+        visibility 0s linear 0s;
+    }
+
+    .queue-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--ink-faint);
+      margin-bottom: 10px;
+    }
+
+    .queue-title {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+    }
+
+    .queue-list {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .queue-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ==========================================================================
+       8. VIEW B: PORTRAIT HOME (策展索引 — Zero Bottom TabBar)
+       ========================================================================== */
+    .p-home {
+      padding: 58px 24px 26px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Pure-Text Navigation Row */
+    .home-top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--ink-faint);
+      padding-bottom: 6px;
+      flex-shrink: 0;
+    }
+
+    .home-tabs {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .home-tab-btn {
+      position: relative;
+      min-height: 36px;
+      padding: 4px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      transition: color 0.3s var(--ease-swiss);
+    }
+
+    .home-tab-btn:hover,
+    .home-tab-btn.is-active {
+      color: var(--ink-primary);
+    }
+
+    /* Tiny 8px underline on active tab */
+    .home-tab-btn.is-active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -7px;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 1px;
+      background-color: var(--ink-primary);
+    }
+
+    .home-now-btn {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--ink-primary);
+      opacity: 0.72;
+      cursor: pointer;
+      transition: opacity 0.3s var(--ease-swiss);
+    }
+
+    .home-now-btn:hover {
+      opacity: 1;
+    }
+
+    .home-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 20px 0 24px;
+      scrollbar-width: none;
+    }
+
+    .home-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .home-pane {
+      display: none;
+    }
+
+    .home-pane.is-active {
+      display: block;
+      animation: fadeQuiet 0.42s var(--ease-swiss) forwards;
+    }
+
+    @keyframes fadeQuiet {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Editorial Headline */
+    .home-hero {
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--ink-faint);
+      margin-bottom: 6px;
+    }
+
+    .home-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+      margin-bottom: 10px;
+    }
+
+    .home-h1 {
+      font-size: 25px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      line-height: 1.38;
+      color: var(--ink-primary);
+      margin-bottom: 8px;
+    }
+
+    .home-sub {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      line-height: 1.65;
+      color: var(--ink-secondary);
+    }
+
+    /* 1px Hairline Tracklist + Inline Accordion Exhibition Placard */
+    .m-track-item {
+      border-bottom: 1px solid var(--ink-ultra-faint);
+      transition: border-color 0.3s var(--ease-swiss);
+    }
+
+    .m-track-item.is-expanded {
+      border-bottom-color: var(--ink-faint);
+    }
+
+    .m-track-head {
+      width: 100%;
+      min-height: 54px;
+      padding: 13px 0;
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      align-items: baseline;
+      column-gap: 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .m-track-idx {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--ink-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .m-track-title {
+      font-size: 17px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--ink-primary);
+      opacity: 0.82;
+      transition: opacity 0.25s var(--ease-swiss);
+    }
+
+    .m-track-head:hover .m-track-title,
+    .m-track-item.is-playing .m-track-title,
+    .m-track-item.is-expanded .m-track-title {
+      opacity: 1;
+    }
+
+    .m-track-dur {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--ink-secondary);
+    }
+
+    /* Expandable Inline Exhibition Placard (No Cover Wall) */
+    .m-placard-drawer {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.42s var(--ease-swiss);
+    }
+
+    .m-track-item.is-expanded .m-placard-drawer {
+      grid-template-rows: 1fr;
+    }
+
+    .m-placard-inner {
+      overflow: hidden;
+    }
+
+    .m-placard-body {
+      padding: 4px 0 18px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .m-placard-top {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    /* 52x52px Geometric Bauhaus SVG Artwork (warms gently when expanded) */
+    .m-art-52 {
+      width: 52px;
+      height: 52px;
+      border: 1px solid var(--ink-faint);
+      flex-shrink: 0;
+      filter: grayscale(100%) opacity(0.7);
+      transition: filter 0.65s var(--ease-swiss), border-color 0.5s var(--ease-swiss);
+    }
+
+    .m-track-item.is-expanded .m-art-52 {
+      filter: grayscale(0%) opacity(1);
+      border-color: var(--ink-secondary);
+    }
+
+    .m-placard-meta {
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      line-height: 1.75;
+      color: var(--ink-secondary);
+    }
+
+    .m-placard-note {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      line-height: 1.75;
+      color: var(--ink-primary);
+      opacity: 0.78;
+    }
+
+    .m-placard-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 18px;
+      padding-top: 2px;
+    }
+
+    .m-inline-action {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--ink-primary);
+      opacity: 0.65;
+      cursor: pointer;
+      transition: opacity 0.25s var(--ease-swiss);
+    }
+
+    .m-inline-action:hover,
+    .m-inline-action.is-primary {
+      opacity: 1;
+    }
+
+    /* Inline Zero-Modal Search */
+    .m-search-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      border-bottom: 1px solid var(--ink-primary);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .m-search-input {
+      width: 100%;
+      font-size: 20px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      color: var(--ink-primary);
+    }
+
+    .m-search-input::placeholder {
+      color: var(--ink-secondary);
+      font-size: 15px;
+    }
+
+    .m-search-count {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--ink-secondary);
+      white-space: nowrap;
+    }
+
+    /* Editions / Collections */
+    .m-edition-item {
+      border-bottom: 1px solid var(--ink-faint);
+      padding: 18px 0;
+    }
+
+    .m-edition-head {
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .m-edition-code {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+      margin-bottom: 6px;
+    }
+
+    .m-edition-title {
+      font-size: 21px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      color: var(--ink-primary);
+      margin-bottom: 6px;
+    }
+
+    .m-edition-desc {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      line-height: 1.7;
+      color: var(--ink-secondary);
+    }
+
+    .m-edition-tracks {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--ink-ultra-faint);
+      display: none;
+    }
+
+    .m-edition-item.is-open .m-edition-tracks {
+      display: block;
+    }
+
+    .m-edition-track-row {
+      width: 100%;
+      min-height: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--ink-primary);
+      opacity: 0.82;
+      cursor: pointer;
+    }
+
+    .m-edition-track-row:hover {
+      opacity: 1;
+    }
+
+    /* Settings Swiss Typographic Ledger */
+    .m-ledger-row {
+      padding: 17px 0;
+      border-bottom: 1px solid var(--ink-faint);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .m-ledger-key {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--ink-secondary);
+      flex-shrink: 0;
+    }
+
+    .m-ledger-val {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 12.5px;
+      letter-spacing: 0.12em;
+      color: var(--ink-primary);
+      text-align: right;
+    }
+
+    .m-ledger-opt {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: color 0.25s var(--ease-swiss), border-color 0.25s var(--ease-swiss);
+    }
+
+    .m-ledger-opt.is-selected,
+    .m-ledger-opt:hover {
+      color: var(--ink-primary);
+    }
+
+    .m-ledger-opt.is-selected {
+      border-bottom-color: var(--ink-primary);
+    }
+
+    .empty-state {
+      padding: 56px 0;
+      font-size: 13.5px;
+      font-weight: 300;
+      letter-spacing: 0.14em;
+      line-height: 2.1;
+      color: var(--ink-secondary);
+    }
+
+    /* ==========================================================================
+       9. VIEW C: PORTRAIT LOGIN COVER (扉页 · 面容入室)
+       ========================================================================== */
+    .p-login {
+      padding: 72px 24px 36px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .login-top-note {
+      font-size: 10.5px;
+      letter-spacing: 0.22em;
+      color: var(--ink-secondary);
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--ink-faint);
+    }
+
+    .login-center-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .login-vertical-mark {
+      writing-mode: vertical-rl;
+      font-size: 46px;
+      font-weight: 200;
+      letter-spacing: 0.42em;
+      line-height: 1.1;
+      color: var(--ink-primary);
+      margin-bottom: 22px;
+      user-select: none;
+    }
+
+    .login-en-mark {
+      font-family: var(--font-latin);
+      font-size: 12px;
+      letter-spacing: 0.36em;
+      text-indent: 0.36em;
+      color: var(--ink-secondary);
+    }
+
+    /* Calm 0.75px Hairline Geometric FaceID Scan Ring */
+    .faceid-ring-wrap {
+      margin-top: 32px;
+      height: 76px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .faceid-svg {
+      width: 50px;
+      height: 50px;
+      opacity: 0;
+      transition: opacity 0.35s var(--ease-swiss);
+    }
+
+    .faceid-svg.is-scanning {
+      opacity: 1;
+    }
+
+    .faceid-ring-arc {
+      stroke-dasharray: 138;
+      stroke-dashoffset: 138;
+      transition: stroke-dashoffset 0.7s var(--ease-swiss);
+    }
+
+    .faceid-svg.is-scanning .faceid-ring-arc {
+      stroke-dashoffset: 0;
+    }
+
+    .faceid-caption {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--ink-secondary);
+      min-height: 16px;
+    }
+
+    /* Borderless 1px SMS Form (inside Login) */
+    .login-sms-form {
+      width: 100%;
+      text-align: left;
+      margin-top: 12px;
+    }
+
+    .sms-field {
+      margin-bottom: 22px;
+    }
+
+    .sms-label {
+      display: block;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--ink-secondary);
+      margin-bottom: 6px;
+    }
+
+    .sms-line {
+      display: flex;
+      align-items: baseline;
+      border-bottom: 1px solid var(--ink-faint);
+      transition: border-color 0.3s var(--ease-swiss);
+    }
+
+    .sms-line:focus-within {
+      border-bottom-color: var(--ink-primary);
+    }
+
+    .sms-input {
+      width: 100%;
+      padding: 8px 0;
+      font-size: 15px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+    }
+
+    .sms-code-btn {
+      min-height: 36px;
+      padding-left: 12px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--ink-primary);
+      opacity: 0.6;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .sms-code-btn:hover:not(:disabled) {
+      opacity: 1;
+    }
+
+    .login-bottom-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      padding-top: 16px;
+      border-top: 1px solid var(--ink-faint);
+    }
+
+    /* ==========================================================================
+       10. VIEW D: MOBILE QR AUTHORIZATION SCREEN (掌端授权)
+       ========================================================================== */
+    .p-auth {
+      padding: 72px 24px 36px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .auth-placard {
+      pointer-events: none;
+      text-align: left;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--ink-faint);
+    }
+
+    .auth-placard-line {
+      font-size: 11.5px;
+      font-weight: 300;
+      letter-spacing: 0.14em;
+      line-height: 1.95;
+      color: var(--ink-secondary);
+    }
+
+    .auth-placard-line strong {
+      font-weight: 400;
+      color: var(--ink-primary);
+    }
+
+    .auth-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 28px;
+    }
+
+    /* Hairline Crop-Marked Device Seal */
+    .device-crop-box {
+      position: relative;
+      width: 116px;
+      height: 116px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crop-c {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+    }
+
+    .crop-tl { top: 0; left: 0; border-top: 0.75px solid var(--ink-secondary); border-left: 0.75px solid var(--ink-secondary); }
+    .crop-tr { top: 0; right: 0; border-top: 0.75px solid var(--ink-secondary); border-right: 0.75px solid var(--ink-secondary); }
+    .crop-bl { bottom: 0; left: 0; border-bottom: 0.75px solid var(--ink-secondary); border-left: 0.75px solid var(--ink-secondary); }
+    .crop-br { bottom: 0; right: 0; border-bottom: 0.75px solid var(--ink-secondary); border-right: 0.75px solid var(--ink-secondary); }
+
+    .auth-prompt {
+      font-size: 27px;
+      font-weight: 200;
+      letter-spacing: 0.16em;
+      line-height: 1.5;
+      color: var(--ink-primary);
+    }
+
+    .auth-sub-status {
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      color: var(--ink-secondary);
+      min-height: 18px;
+    }
+
+    .auth-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      padding-top: 14px;
+      border-top: 1px solid var(--ink-faint);
+    }
+
+    /* ==========================================================================
+       11. VIEW E: LANDSCAPE MODE (横屏 · 案头台钟 — 812×375, Symmetric 48px Safe Area)
+       ========================================================================== */
+    .l-player {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 20px 48px 26px; /* STRICT symmetric 48px safe-area left & right */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top 1px Swiss Progress Rule (Clears bottom Home Indicator completely) */
+    .l-top-bar {
+      flex-shrink: 0;
+      margin-bottom: 10px;
+    }
+
+    .l-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--ink-secondary);
+      padding-bottom: 8px;
+      user-select: none;
+      transition: opacity 0.75s var(--ease-swiss);
+    }
+
+    .l-player.is-standby .l-top-meta {
+      opacity: 0.32;
+    }
+
+    .l-progress-wrap {
+      position: relative;
+      width: 100%;
+      height: 18px;
+      margin-top: -8px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .l-progress-track {
+      position: relative;
+      width: 100%;
+      height: 1px;
+      background-color: var(--ink-faint);
+      transition: height 0.25s var(--ease-swiss);
+    }
+
+    .l-progress-wrap.is-scrubbing .l-progress-track {
+      height: 2.5px;
+    }
+
+    .l-progress-fill {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 1.5px;
+      width: 0%;
+      background-color: var(--ink-primary);
+    }
+
+    .l-progress-tip {
+      position: absolute;
+      left: 0%;
+      top: 50%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--vermilion);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Desktop-Style 3-Column Order on Symmetric 8-Col Grid (2 | 4 | 2) */
+    .l-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      column-gap: 16px;
+      align-items: center;
+    }
+
+    /* Left Column (Cols 1-2, Right-Aligned, ONLY 4 Essential Controls) */
+    .l-col-left {
+      grid-column: 1 / 3;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      text-align: right;
+      transition: opacity 0.85s var(--ease-swiss);
+    }
+
+    .l-player.is-standby .l-col-left {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .l-ctrl-btn {
+      position: relative;
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      font-size: 12.5px;
+      letter-spacing: 0.16em;
+      color: var(--ink-primary);
+      opacity: 0.52;
+      cursor: pointer;
+      transition: opacity 0.28s var(--ease-swiss);
+    }
+
+    .l-ctrl-btn:hover,
+    .l-ctrl-btn.is-active {
+      opacity: 1;
+    }
+
+    .l-ctrl-btn.is-active::after {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      width: 6px;
+      height: 1px;
+      background-color: var(--ink-primary);
+      transform: translateY(-50%);
+    }
+
+    /* Center Column (Cols 3-6, Widescreen Single-Focus Cinema Lyric OR Monumental Serif Clock) */
+    .l-col-center {
+      grid-column: 3 / 7;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 8px;
+      touch-action: pan-y;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .l-cinema-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      transition: opacity 0.5s var(--ease-swiss);
+    }
+
+    .l-cinema-wrap.is-switching {
+      opacity: 0;
+    }
+
+    .l-lyric-hero {
+      font-size: 24px;
+      font-weight: 200;
+      letter-spacing: 0.11em;
+      line-height: 1.5;
+      color: var(--ink-primary);
+    }
+
+    .l-lyric-next {
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--ink-primary);
+      opacity: 0.25;
+      min-height: 18px;
+    }
+
+    /* Monumental Ultra-Light Serif Live Desk Clock (Pure Instrumentals or Clock Toggle) */
+    .l-clock-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .l-clock-digits {
+      font-family: var(--font-latin);
+      font-size: 74px;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--ink-primary);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .l-clock-sec {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--ink-secondary);
+      letter-spacing: 0.08em;
+    }
+
+    .l-clock-caption {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--ink-secondary);
+    }
+
+    /* Right Column (Cols 7-8, Left-Aligned, Strictly Read-Only) */
+    .l-col-right {
+      grid-column: 7 / 9;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+      pointer-events: none;
+      user-select: none;
+      transition: opacity 0.85s var(--ease-swiss);
+    }
+
+    .l-player.is-standby .l-col-right {
+      opacity: 0.35;
+    }
+
+    .l-meta-title {
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      line-height: 1.45;
+      color: var(--ink-primary);
+      margin-bottom: 5px;
+    }
+
+    .l-meta-sub {
+      font-size: 11.5px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      line-height: 1.7;
+      color: var(--ink-secondary);
+    }
+
+    .l-meta-spec {
+      margin-top: 12px;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--ink-secondary);
+    }
+
+    /* Small-screen studio adaptation */
+    @media (max-width: 640px) {
+      .studio-shell {
+        padding: 10px 12px 12px;
+      }
+      .studio-controls {
+        gap: 4px 12px;
+      }
+      .studio-btn {
+        font-size: 10.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="studio-shell">
+    <!-- Top Outer Studio Header -->
+    <header class="studio-header">
+      <div class="studio-brand">静听 · STILLE / 移动端交互原型</div>
+      <div id="studioReadout" class="studio-status-readout tabular-nums">
+        <span id="studioDot" class="vermilion-dot hidden-el"></span>
+        <span id="studioStatusText">竖屏诗笺 · 390 × 844</span>
+      </div>
+    </header>
+
+    <!-- Centered Matte Smartphone Hardware Stage -->
+    <div id="phoneStage" class="phone-stage">
+      <div id="phoneScaleRig" class="phone-scale-rig">
+        <div class="phone-hardware">
+          <!-- Subtle Hardware Buttons -->
+          <span class="hw-btn hw-vol-up" aria-hidden="true"></span>
+          <span class="hw-btn hw-vol-dn" aria-hidden="true"></span>
+          <span class="hw-btn hw-power" aria-hidden="true"></span>
+
+          <!-- OLED Phone Screen -->
+          <div id="phoneScreen" class="phone-screen">
+            <!-- 2% Paper Grain -->
+            <div class="screen-grain" aria-hidden="true"></div>
+
+            <!-- Dynamic Island -->
+            <div class="dynamic-island" aria-hidden="true"></div>
+
+            <!-- Minimal Serif Status Bar -->
+            <div class="status-bar tabular-nums" aria-hidden="true">
+              <span id="statusClock">15:37</span>
+              <span class="status-icons">
+                <!-- Hairline Signal -->
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1">
+                  <line x1="1.5" y1="8" x2="1.5" y2="9.5" />
+                  <line x1="5" y1="6" x2="5" y2="9.5" />
+                  <line x1="8.5" y1="3.5" x2="8.5" y2="9.5" />
+                  <line x1="12" y1="1" x2="12" y2="9.5" />
+                </svg>
+                <!-- Hairline Battery -->
+                <svg width="20" height="10" viewBox="0 0 20 10" fill="none" stroke="currentColor" stroke-width="0.9">
+                  <rect x="0.5" y="1" width="16.5" height="8" rx="1.5" />
+                  <rect x="2.2" y="2.6" width="11.5" height="4.8" fill="currentColor" stroke="none" />
+                  <line x1="18.8" y1="3.4" x2="18.8" y2="6.6" stroke-width="1.2" />
+                </svg>
+              </span>
+            </div>
+
+            <!-- Swiss Grid Overlay (4-Col Portrait / Symmetric 8-Col Landscape) -->
+            <div id="phoneGridOverlay" class="phone-grid-overlay" aria-hidden="true">
+              <div class="phone-grid-col"></div>
+              <div class="phone-grid-col"></div>
+              <div class="phone-grid-col"></div>
+              <div class="phone-grid-col"></div>
+              <div class="phone-grid-col col-extra"></div>
+              <div class="phone-grid-col col-extra"></div>
+              <div class="phone-grid-col col-extra"></div>
+              <div class="phone-grid-col col-extra"></div>
+            </div>
+
+            <!-- ================================================================
+                 VIEW A: PORTRAIT PLAYER (竖屏诗笺 — 左上静 · 中间词 · 右下动)
+                 ================================================================ -->
+            <section id="viewPortraitPlayer" class="screen-view portrait-only is-active" aria-label="竖屏诗笺播放页">
+              <div class="p-player">
+                <!-- Top-Left: Strictly Non-Interactive Metadata Placard -->
+                <div id="pMetaTop" class="p-meta-top">
+                  <div class="p-meta-row">
+                    <div id="pStampArt" class="stamp-36" aria-hidden="true"></div>
+                    <div>
+                      <div id="pTrackIndex" class="p-index-kicker tabular-nums">NO. 01 · 诗意声景</div>
+                      <h1 id="pTrackTitle" class="p-track-title">山中月</h1>
+                      <div id="pTrackArtist" class="p-track-artist">坂本龙一 · 12 (2023)</div>
+                    </div>
+                  </div>
+                  <div class="p-track-spec tabular-nums">
+                    <span id="pTrackFormat">FLAC 24-BIT / 96KHZ</span>
+                    <span id="pTrackTime" class="p-track-time">00:24 / 04:38</span>
+                  </div>
+                </div>
+
+                <!-- Center Breathing Zone (~55% height, Swipe Left/Right to Skip) -->
+                <div id="pLyricZone" class="p-lyric-zone">
+                  <div class="p-lyric-stack">
+                    <div id="pLyricPrev" class="p-lyric-context"></div>
+                    <div id="pLyricActive" class="p-lyric-active"></div>
+                    <div id="pLyricNext" class="p-lyric-context"></div>
+                  </div>
+                  <div id="pSwipeWhisper" class="swipe-whisper">左右轻滑 · 切歌</div>
+                </div>
+
+                <!-- Horizon 1px Swiss Progress Rule (Thumb-Reachable) -->
+                <div id="pHorizonWrap" class="p-horizon-wrap" role="slider" aria-label="播放进度">
+                  <div id="pScrubFloat" class="p-scrub-float tabular-nums">00:00</div>
+                  <div class="p-horizon-track">
+                    <div id="pHorizonFill" class="p-horizon-fill"></div>
+                    <div id="pHorizonTip" class="p-horizon-tip"></div>
+                  </div>
+                </div>
+
+                <!-- Bottom Bar: Left (Low-Frequency Index/Queue) & Right (High-Frequency Right-Aligned Controls) -->
+                <div class="p-bottom-bar">
+                  <div class="p-bottom-left">
+                    <button id="btnOpenHome" class="touch-text-btn align-left" type="button">索引 ↗</button>
+                    <button id="btnOpenQueue" class="touch-text-btn align-left" type="button">队列</button>
+                  </div>
+
+                  <div class="p-bottom-right">
+                    <div class="p-ctrl-row">
+                      <button id="pBtnPlay" class="touch-text-btn align-right" type="button">
+                        <span id="pPlayDot" class="vermilion-dot hidden-el"></span>
+                        <span id="pPlayText">播放</span>
+                      </button>
+                      <span class="p-slash">/</span>
+                      <button id="pBtnNext" class="touch-text-btn align-right" type="button">下一曲</button>
+                    </div>
+                    <div class="p-ctrl-row">
+                      <button id="pBtnFav" class="touch-text-btn align-right" type="button">
+                        <span id="pFavDot" class="vermilion-dot hidden-el"></span>
+                        <span id="pFavText">收藏</span>
+                      </button>
+                      <span class="p-slash">·</span>
+                      <button id="pBtnMode" class="touch-text-btn align-right" type="button">循环</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Minimal Inline Queue Overlay (Pure Canvas + Hairline) -->
+                <div id="pQueueOverlay" class="p-queue-overlay" aria-label="待播队列">
+                  <div class="queue-head">
+                    <span class="queue-title tabular-nums">待播队列 · QUEUE (06)</span>
+                    <button id="btnCloseQueue" class="touch-text-btn align-right" type="button">收起 —</button>
+                  </div>
+                  <div id="pQueueList" class="queue-list"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================
+                 VIEW B: PORTRAIT HOME (策展索引 — Zero Bottom TabBar)
+                 ================================================================ -->
+            <section id="viewPortraitHome" class="screen-view portrait-only" aria-label="策展目录主页">
+              <div class="p-home">
+                <!-- Top Pure-Text Navigation -->
+                <nav class="home-top-nav" aria-label="目录导航">
+                  <div class="home-tabs">
+                    <button class="home-tab-btn is-active" data-htab="curated" type="button">
+                      <span class="vermilion-dot"></span><span>策展</span>
+                    </button>
+                    <button class="home-tab-btn" data-htab="favorites" type="button"><span>收藏</span></button>
+                    <button class="home-tab-btn" data-htab="editions" type="button"><span>辑</span></button>
+                    <button class="home-tab-btn" data-htab="search" type="button"><span>检索</span></button>
+                    <button class="home-tab-btn" data-htab="settings" type="button"><span>设置</span></button>
+                  </div>
+                  <button id="btnHomeBackPlayer" class="home-now-btn" type="button">
+                    <span id="homeNowDot" class="vermilion-dot hidden-el"></span>
+                    <span>正在播放 · ↗</span>
+                  </button>
+                </nav>
+
+                <!-- Scrollable Editorial Canvas -->
+                <div class="home-scroll">
+                  <!-- Tab 1: 策展 (Curated Index with Inline Accordion Exhibition Placard) -->
+                  <div id="pane-curated" class="home-pane is-active">
+                    <div class="home-hero">
+                      <div class="home-eyebrow tabular-nums">NO. 11 / 2026 · CURATED INDEX</div>
+                      <h2 class="home-h1">最后的静默 · 2026 卷首</h2>
+                      <p class="home-sub">轻点任意曲目展开行内展签，再次点击「入室聆听」。</p>
+                    </div>
+                    <div id="curatedList"></div>
+                  </div>
+
+                  <!-- Tab 2: 收藏 (Favorites) -->
+                  <div id="pane-favorites" class="home-pane">
+                    <div class="home-hero">
+                      <div id="favEyebrow" class="home-eyebrow tabular-nums">PRIVATE COLLECTION · 03 首</div>
+                      <h2 class="home-h1">私人藏音</h2>
+                      <p class="home-sub">与播放室实时同步的静默曲目单。</p>
+                    </div>
+                    <div id="favoritesList"></div>
+                  </div>
+
+                  <!-- Tab 3: 辑 (Curated Editions) -->
+                  <div id="pane-editions" class="home-pane">
+                    <div class="home-hero">
+                      <div class="home-eyebrow tabular-nums">EDITIONS · 03 辑</div>
+                      <h2 class="home-h1">主题声景辑录</h2>
+                      <p class="home-sub">以室内空气密度与夜间静谧度编排的三册听觉选集。</p>
+                    </div>
+                    <div id="editionsList"></div>
+                  </div>
+
+                  <!-- Tab 4: 检索 (Zero-Modal Inline Search) -->
+                  <div id="pane-search" class="home-pane">
+                    <div class="m-search-wrap">
+                      <input
+                        id="mSearchInput"
+                        class="m-search-input"
+                        type="text"
+                        placeholder="键入曲名、演奏者或风格……"
+                        autocomplete="off"
+                      />
+                      <span id="mSearchCount" class="m-search-count tabular-nums">06 项</span>
+                    </div>
+                    <div id="searchList"></div>
+                  </div>
+
+                  <!-- Tab 5: 设置 (Pure Swiss Typographic Ledger) -->
+                  <div id="pane-settings" class="home-pane">
+                    <div class="home-hero">
+                      <div class="home-eyebrow">SYSTEM LEDGER · 器物与尺度</div>
+                      <h2 class="home-h1">系统设置</h2>
+                    </div>
+
+                    <div class="m-ledger-row">
+                      <span class="m-ledger-key">纸墨主题</span>
+                      <span class="m-ledger-val">
+                        <button class="m-ledger-opt" data-mtheme="paper" type="button">宣纸</button>
+                        <span class="p-slash">/</span>
+                        <button class="m-ledger-opt" data-mtheme="ink" type="button">玄墨</button>
+                      </span>
+                    </div>
+
+                    <div class="m-ledger-row">
+                      <span class="m-ledger-key">网格显示</span>
+                      <span class="m-ledger-val">
+                        <button class="m-ledger-opt" data-mgrid="true" type="button">显示</button>
+                        <span class="p-slash">/</span>
+                        <button class="m-ledger-opt" data-mgrid="false" type="button">隐藏</button>
+                      </span>
+                    </div>
+
+                    <div class="m-ledger-row">
+                      <span class="m-ledger-key">桌面端协同</span>
+                      <span class="m-ledger-val">
+                        <button id="btnSettingsQrAuth" class="m-ledger-opt is-selected" type="button">桌面端扫码授权 ↗</button>
+                      </span>
+                    </div>
+
+                    <div class="m-ledger-row">
+                      <span class="m-ledger-key">音质规格</span>
+                      <span class="m-ledger-val tabular-nums">
+                        <button class="m-ledger-opt" data-mqual="FLAC 24-BIT / 96KHZ" type="button">FLAC 24-96</button>
+                        <span class="p-slash">/</span>
+                        <button class="m-ledger-opt" data-mqual="ALAC 16-BIT / 44.1KHZ" type="button">ALAC</button>
+                      </span>
+                    </div>
+
+                    <div class="m-ledger-row">
+                      <span class="m-ledger-key">通行凭证</span>
+                      <span class="m-ledger-val">
+                        <button id="btnSettingsLogout" class="m-ledger-opt" type="button">退出至扉页 —</button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================
+                 VIEW C: PORTRAIT LOGIN COVER (扉页 · 面容入室)
+                 ================================================================ -->
+            <section id="viewPortraitLogin" class="screen-view portrait-only" aria-label="移动端扉页登录">
+              <div class="p-login">
+                <div class="login-top-note tabular-nums">STILLE ARCHIVE · NO. 11 / 2026</div>
+
+                <div class="login-center-stage">
+                  <!-- FaceID Default State -->
+                  <div id="loginFaceWrap" style="display: flex; flex-direction: column; align-items: center;">
+                    <div class="login-vertical-mark">静 听</div>
+                    <div class="login-en-mark">S T I L L E</div>
+
+                    <div class="faceid-ring-wrap">
+                      <svg id="faceidSvg" class="faceid-svg" viewBox="0 0 50 50" fill="none">
+                        <circle cx="25" cy="25" r="22" stroke="currentColor" stroke-width="0.75" opacity="0.2" />
+                        <circle
+                          class="faceid-ring-arc"
+                          cx="25"
+                          cy="25"
+                          r="22"
+                          stroke="currentColor"
+                          stroke-width="0.9"
+                          transform="rotate(-90 25 25)"
+                        />
+                        <rect x="23.5" y="23.5" width="3" height="3" fill="#D93829" />
+                      </svg>
+                      <div id="faceidCaption" class="faceid-caption">掌端生物凭证已就绪</div>
+                    </div>
+                  </div>
+
+                  <!-- Borderless 1px SMS Form State -->
+                  <form id="loginSmsForm" class="login-sms-form hidden-el" autocomplete="off">
+                    <div class="sms-field">
+                      <label class="sms-label" for="mPhoneInput">通讯号码 / MOBILE</label>
+                      <div class="sms-line">
+                        <input
+                          id="mPhoneInput"
+                          class="sms-input tabular-nums"
+                          type="tel"
+                          value="+86 138 0024 1989"
+                          placeholder="+86 138 0000 0000"
+                        />
+                      </div>
+                    </div>
+                    <div class="sms-field">
+                      <label class="sms-label" for="mSmsCodeInput">六位验码 / PASSCODE</label>
+                      <div class="sms-line">
+                        <input
+                          id="mSmsCodeInput"
+                          class="sms-input tabular-nums"
+                          type="text"
+                          maxlength="6"
+                          value="202611"
+                          placeholder="输入六位验码"
+                        />
+                        <button id="btnMobileSendSms" class="sms-code-btn tabular-nums" type="button">获取验码</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Right-Aligned Swiss Bottom Actions -->
+                <div class="login-bottom-actions">
+                  <button id="btnFaceIdEnter" class="touch-text-btn align-right is-active" type="button">
+                    <span class="vermilion-dot"></span>
+                    <span id="loginPrimaryLabel">面容一键入室 —</span>
+                  </button>
+                  <button id="btnToggleSmsLogin" class="touch-text-btn align-right" type="button">验码入室</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================
+                 VIEW D: MOBILE QR AUTHORIZATION SCREEN (掌端授权)
+                 ================================================================ -->
+            <section id="viewPortraitAuth" class="screen-view portrait-only" aria-label="掌端扫码授权">
+              <div class="p-auth">
+                <!-- Static Left-Aligned Session Placard -->
+                <div class="auth-placard">
+                  <div class="auth-placard-line">请求端：<strong>MacBook Pro · 桌面端</strong></div>
+                  <div class="auth-placard-line">节点：<strong>Tokyo · Edge</strong></div>
+                  <div class="auth-placard-line">协议：<strong>端到端加密认证 (TLS 1.3)</strong></div>
+                </div>
+
+                <!-- Center Hairline Crop-Marked Device Seal + Monumental Prompt -->
+                <div class="auth-center">
+                  <div class="device-crop-box" aria-hidden="true">
+                    <span class="crop-c crop-tl"></span>
+                    <span class="crop-c crop-tr"></span>
+                    <span class="crop-c crop-bl"></span>
+                    <span class="crop-c crop-br"></span>
+                    <!-- Minimal Hairline Desktop Display Icon -->
+                    <svg width="56" height="44" viewBox="0 0 56 44" fill="none" stroke="currentColor" stroke-width="0.85">
+                      <rect x="4" y="4" width="48" height="30" />
+                      <line x1="0" y1="38" x2="56" y2="38" />
+                      <circle id="authSealDot" cx="28" cy="19" r="2.2" fill="#D93829" stroke="none" />
+                    </svg>
+                  </div>
+                  <h2 id="authPromptTitle" class="auth-prompt">确认于桌面端入室</h2>
+                  <div id="authSubStatus" class="auth-sub-status">掌端已识别桌面扉页动态码纹</div>
+                </div>
+
+                <!-- Right-Aligned Confirmation Controls -->
+                <div class="auth-actions">
+                  <button id="btnAuthConfirm" class="touch-text-btn align-right is-active" type="button">
+                    <span class="vermilion-dot"></span>
+                    <span>确认授权 —</span>
+                  </button>
+                  <button id="btnAuthCancel" class="touch-text-btn align-right" type="button">取消</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================================
+                 VIEW E: LANDSCAPE MODE (横屏 · 案头台钟 — 812×375 Symmetric Safe Area)
+                 ================================================================ -->
+            <section id="viewLandscapePlayer" class="screen-view landscape-only" aria-label="横屏案头播放与台钟">
+              <div id="lPlayerRoot" class="l-player">
+                <!-- Top 1px Swiss Progress Rule (Completely clears bottom Home Indicator) -->
+                <div class="l-top-bar">
+                  <div class="l-top-meta tabular-nums">
+                    <span id="lTopIndex">静听 · NO. 01</span>
+                    <span id="lTopTime">00:24 / 04:38</span>
+                  </div>
+                  <div id="lProgressWrap" class="l-progress-wrap" role="slider" aria-label="横屏播放进度">
+                    <div class="l-progress-track">
+                      <div id="lProgressFill" class="l-progress-fill"></div>
+                      <div id="lProgressTip" class="l-progress-tip"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Desktop-Style 3-Column Order (Left Right-Aligned | Center | Right Read-Only) -->
+                <div class="l-grid">
+                  <!-- Left Column: ONLY 4 Essential Controls (Fades to 0% after 4s idle) -->
+                  <div class="l-col-left">
+                    <button id="lBtnPlay" class="l-ctrl-btn is-active" type="button">暂停</button>
+                    <button id="lBtnNext" class="l-ctrl-btn" type="button">下一曲</button>
+                    <button id="lBtnPrev" class="l-ctrl-btn" type="button">上一曲</button>
+                    <button id="lBtnFav" class="l-ctrl-btn" type="button">
+                      <span id="lFavDot" class="vermilion-dot hidden-el"></span>
+                      <span id="lFavText">收藏</span>
+                    </button>
+                  </div>
+
+                  <!-- Center Column: Widescreen Cinema Lyric OR Monumental Serif Desk Clock -->
+                  <div id="lCenterZone" class="l-col-center" title="双击暂停/播放 · 左右轻滑切歌">
+                    <!-- Lyric Mode -->
+                    <div id="lCinemaWrap" class="l-cinema-wrap">
+                      <div id="lLyricHero" class="l-lyric-hero">留白之处，比声响本身更为辽阔</div>
+                      <div id="lLyricNext" class="l-lyric-next">山影沉静，万物归于无波的纸面</div>
+                    </div>
+
+                    <!-- Monumental Serif Live Desk Clock (Pure Instrumentals / Clock Toggle) -->
+                    <div id="lClockWrap" class="l-clock-wrap hidden-el">
+                      <div class="l-clock-digits tabular-nums">
+                        <span id="lClockHM">15:37</span>
+                        <span id="lClockSec" class="l-clock-sec">08</span>
+                      </div>
+                      <div id="lClockCaption" class="l-clock-caption">纯器乐静默 · 案头台钟</div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column: Strictly Read-Only Static Metadata (Dims to 35% on StandBy) -->
+                  <div class="l-col-right">
+                    <div id="lMetaTitle" class="l-meta-title">山中月</div>
+                    <div id="lMetaArtist" class="l-meta-sub">坂本龙一</div>
+                    <div id="lMetaAlbum" class="l-meta-sub latin" style="font-style: italic;">12 (2023)</div>
+                    <div id="lMetaSpec" class="l-meta-spec tabular-nums">FLAC 24-96</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Bottom Home Indicator -->
+            <div class="home-indicator" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Outer Minimalist Swiss Studio Controls -->
+    <footer class="studio-controls" aria-label="原型画廊控制台">
+      <button id="ctrlOrientation" class="studio-btn is-active" type="button">竖屏诗笺 / 横屏台钟</button>
+      <span class="studio-sep" aria-hidden="true"></span>
+      <button id="ctrlTheme" class="studio-btn" type="button">宣纸 / 玄墨</button>
+      <button id="ctrlGrid" class="studio-btn" type="button">网格</button>
+      <span class="studio-sep" aria-hidden="true"></span>
+      <button id="ctrlLogin" class="studio-btn" type="button">扉页登录</button>
+      <button id="ctrlQrAuth" class="studio-btn" type="button">掌端扫码</button>
+      <span class="studio-sep" aria-hidden="true"></span>
+      <button id="ctrlClockMode" class="studio-btn" type="button">台钟模式</button>
+      <button id="ctrlStandby" class="studio-btn" type="button">触发入定</button>
+      <span class="studio-sep" aria-hidden="true"></span>
+      <button id="ctrlAudioMute" class="studio-btn is-active" type="button">琴声：开</button>
+    </footer>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 静听 · STILLE — Mobile Phone Frame Interactive Prototype Engine
+     * - Curated 6-track catalog (lyrical + pure instrumental) with Bauhaus SVG art
+     * - Web Audio API warm felt-piano harmonic synthesizer
+     * - Portrait diagonal layout, inline accordion placards, swipe-to-skip,
+     *   horizon scrubber, FaceID cover, Mobile QR desktop auth
+     * - 20:9 Landscape StandBy desk-clock with 4-second automatic idle fade
+     * =========================================================================
+     */
+
+    /* -------------------------------------------------------------------------
+       1. CURATED CATALOG & BAUHAUS GEOMETRIC SVG ARTWORKS
+       ------------------------------------------------------------------------- */
+    const TRACKS = [
+      {
+        id: "01",
+        title: "山中月",
+        artist: "坂本龙一",
+        album: "12",
+        year: "2023",
+        label: "Milan Records",
+        tag: "诗意声景",
+        duration: 278,
+        instrumental: false,
+        favorited: true,
+        note: "在绝对的寂静中，每一次琴键的起落与踏板轻响，都是生命最诚实的呼吸。",
+        synth: {
+          mode: "piano",
+          intervalMs: 2450,
+          notes: [293.66, 329.63, 349.23, 440.0, 523.25, 587.33],
+          bass: [146.83, 174.61, 130.81, 146.83]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="23" r="12" fill="none" stroke="currentColor" stroke-width="0.9"/>
+            <circle cx="30" cy="23" r="5.5" fill="var(--art-warm)" opacity="0.28"/>
+            <line x1="0" y1="41" x2="60" y2="41" stroke="currentColor" stroke-width="0.8" opacity="0.65"/>
+            <line x1="10" y1="47" x2="50" y2="47" stroke="currentColor" stroke-width="0.65" opacity="0.32"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "夜深时，室内只剩木地板微弱的回声", sub: "Late at night, only faint timber resonance remains" },
+          { time: 18, text: "一轮素月缓慢移过窗棂的几何边界", sub: "A pale moon drifts across the sash geometry" },
+          { time: 40, text: "指尖落下前，空气已先行振动", sub: "Before fingers fall, air already trembles" },
+          { time: 68, text: "留白之处，比声响本身更为辽阔", sub: "Where silence resides, wider than sound itself" },
+          { time: 102, text: "不去追赶时间，只倾听余振自然消逝", sub: "Never chasing time, listening as overtones fade" },
+          { time: 142, text: "山影沉静，万物归于无波的纸面", sub: "Mountain shadows rest upon unrippled paper" },
+          { time: 192, text: "最后一记和弦，悬停于黎明之前", sub: "The final chord suspended before dawn" }
+        ]
+      },
+      {
+        id: "02",
+        title: "Gymnopédie No. 1",
+        artist: "Erik Satie",
+        album: "Trois Gymnopédies",
+        year: "1888",
+        label: "Deutsche Grammophon",
+        tag: "纯器乐 · 钢琴",
+        duration: 192,
+        instrumental: true,
+        favorited: true,
+        note: "缓慢而忧郁的三拍子摇摆，以极度克制的和声重塑了现代极简主义的源头。",
+        synth: {
+          mode: "waltz",
+          intervalMs: 2100,
+          notes: [369.99, 440.0, 493.88, 554.37, 587.33],
+          bass: [196.0, 146.83]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <rect x="11" y="11" width="38" height="38" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
+            <circle cx="24" cy="30" r="10" fill="var(--art-cool)" opacity="0.32"/>
+            <circle cx="36" cy="30" r="10" fill="none" stroke="currentColor" stroke-width="0.9"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "纯器乐 · Lent et douloureux", sub: "Instrumental · 缓慢而略带哀愁的三拍子" },
+          { time: 58, text: "—— 独奏钢琴 · 静默聆听 ——", sub: "Solo Piano · 横屏时自动切换至案头台钟" },
+          { time: 126, text: "余音落定，宛如纸上未擦去的铅痕", sub: "Overtones settle like graphite on rag paper" }
+        ]
+      },
+      {
+        id: "03",
+        title: "20220302 - sarabande",
+        artist: "坂本龙一",
+        album: "12",
+        year: "2023",
+        label: "Milan Records",
+        tag: "纯器乐 · 萨拉班德",
+        duration: 216,
+        instrumental: true,
+        favorited: false,
+        note: "以日期命名的声音素描，在极缓的萨拉班德节拍里凝视光线与空气的质地。",
+        synth: {
+          mode: "ambient",
+          intervalMs: 3200,
+          notes: [261.63, 329.63, 392.0, 493.88, 587.33],
+          bass: [130.81, 164.81, 146.83]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <line x1="15" y1="6" x2="15" y2="54" stroke="currentColor" stroke-width="0.7" opacity="0.3"/>
+            <line x1="30" y1="6" x2="30" y2="54" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+            <line x1="45" y1="6" x2="45" y2="54" stroke="currentColor" stroke-width="0.7" opacity="0.3"/>
+            <rect x="15" y="18" width="15" height="15" fill="var(--art-warm)" opacity="0.28"/>
+            <rect x="30" y="33" width="15" height="15" fill="none" stroke="currentColor" stroke-width="0.9"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "纯器乐 · 20220302 声音素描", sub: "Instrumental · Felt Piano & Natural Room Air" },
+          { time: 90, text: "—— 萨拉班德缓慢呼吸 ——", sub: "Sarabande · 横屏自动呈现极简台钟" }
+        ]
+      },
+      {
+        id: "04",
+        title: "春风十里 · 室内版",
+        artist: "鹿先森 · 室内弦乐",
+        album: "深夜留白辑",
+        year: "2024",
+        label: "Stille Editions",
+        tag: "汉语诗谣",
+        duration: 264,
+        instrumental: false,
+        favorited: true,
+        note: "褪去喧嚣编曲，以单支大提琴与弱音钢琴重构温润的夜间叙述。",
+        synth: {
+          mode: "piano",
+          intervalMs: 2050,
+          notes: [329.63, 392.0, 440.0, 493.88, 587.33, 659.25],
+          bass: [164.81, 130.81, 146.83, 196.0]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="18" x2="60" y2="18" stroke="currentColor" stroke-width="0.6" opacity="0.25"/>
+            <line x1="0" y1="30" x2="60" y2="30" stroke="currentColor" stroke-width="0.9" opacity="0.8"/>
+            <line x1="0" y1="42" x2="60" y2="42" stroke="currentColor" stroke-width="0.6" opacity="0.25"/>
+            <circle cx="42" cy="18" r="4.5" fill="var(--art-warm)" opacity="0.45"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "我在鼓楼的夜色中为你唱花香自来", sub: "Singing softly into the cool evening air" },
+          { time: 24, text: "在别处沉默相遇和期待", sub: "Meeting quietly in unhurried stillness" },
+          { time: 52, text: "所有的酒，都不如你清澈", sub: "Clearer than every vintage poured at dusk" },
+          { time: 86, text: "说所有的光阴都值得慢慢等待", sub: "Every quiet season deserves patient waiting" },
+          { time: 128, text: "窗外微风拂过白墙上的树影", sub: "Breeze brushes tree shadows on pale plaster" },
+          { time: 178, text: "春风十里，五十里，一百里", sub: "Ten miles of spring wind, unhurried and calm" },
+          { time: 224, text: "夜色归于无声，唯余琴弦微颤", sub: "Night settles into quiet resonance" }
+        ]
+      },
+      {
+        id: "05",
+        title: "青葉市子 · 機械仕掛乃宇宙",
+        artist: "青葉市子 · Ichiko Aoba",
+        album: "0",
+        year: "2013",
+        label: "Speedstar Records",
+        tag: "古典吉他 · 人声",
+        duration: 288,
+        instrumental: false,
+        favorited: false,
+        note: "仅以一把古典吉他与耳语般清澈的声线，在微暗房内织出轻盈星图。",
+        synth: {
+          mode: "piano",
+          intervalMs: 1850,
+          notes: [349.23, 415.3, 466.16, 523.25, 622.25],
+          bass: [174.61, 138.59, 155.56]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="21" fill="none" stroke="currentColor" stroke-width="0.65" opacity="0.28"/>
+            <circle cx="30" cy="30" r="13" fill="none" stroke="currentColor" stroke-width="0.85" opacity="0.58"/>
+            <circle cx="30" cy="30" r="6" fill="var(--art-cool)" opacity="0.34"/>
+            <line x1="30" y1="4" x2="30" y2="56" stroke="currentColor" stroke-width="0.6" opacity="0.35"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "静かに回る、小さな機械仕掛けの宇宙", sub: "A tiny clockwork cosmos turning without haste" },
+          { time: 28, text: "指尖轻拨尼龙弦，微光散落掌心", sub: "Fingertips brush nylon strings, faint light scatters" },
+          { time: 62, text: "窓辺の硝子に、遠い星の呼吸が映る", sub: "Distant starlight breathes across the windowpane" },
+          { time: 104, text: "不必言说归途，此刻便已足够安稳", sub: "No need to name the shore, this stillness suffices" },
+          { time: 152, text: "夜の海に浮かぶ、ひとつの白い小舟", sub: "A pale skiff resting upon the nocturnal sea" },
+          { time: 210, text: "温柔的泛音随呼吸缓缓沉睡", sub: "Gentle harmonics drift quietly into sleep" }
+        ]
+      },
+      {
+        id: "06",
+        title: "On the Nature of Daylight",
+        artist: "Max Richter",
+        album: "The Blue Notebooks",
+        year: "2004",
+        label: "130701 / FatCat",
+        tag: "纯器乐 · 弦乐",
+        duration: 371,
+        instrumental: true,
+        favorited: false,
+        note: "五重弦乐以低沉庄严的复调徐徐展开，凝视白昼光线中易逝而永恒的微尘。",
+        synth: {
+          mode: "ambient",
+          intervalMs: 3000,
+          notes: [233.08, 277.18, 349.23, 466.16, 554.37],
+          bass: [116.54, 185.0, 138.59, 174.61]
+        },
+        artSvg: `
+          <svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="60" x2="60" y2="0" stroke="currentColor" stroke-width="0.95" opacity="0.85"/>
+            <line x1="0" y1="44" x2="44" y2="0" stroke="currentColor" stroke-width="0.6" opacity="0.32"/>
+            <polygon points="0,60 22,60 0,38" fill="var(--art-warm)" opacity="0.26"/>
+          </svg>
+        `,
+        lyrics: [
+          { time: 0, text: "纯器乐 · String Quintet in Bb Minor", sub: "Instrumental · 弦乐五重奏与白昼微尘" },
+          { time: 120, text: "—— 复调长弓 · 静默聆听 ——", sub: "The Blue Notebooks · Berlin" }
+        ]
+      }
+    ];
+
+    const EDITIONS = [
+      {
+        id: "ed-1",
+        code: "EDITION 01 · 静默室内",
+        title: "静默室内",
+        desc: "适合独处阅读、素描与深度思辨的三部低动态室内器乐。",
+        trackIds: ["01", "02", "03"]
+      },
+      {
+        id: "ed-2",
+        code: "EDITION 02 · 雨夜黑胶",
+        title: "雨夜黑胶",
+        desc: "微弱底噪与人声低语交织的夜间诗谣精选，温润克制。",
+        trackIds: ["04", "05", "01"]
+      },
+      {
+        id: "ed-3",
+        code: "EDITION 03 · 微光器乐",
+        title: "微光器乐",
+        desc: "全纯器乐选集，搭配横屏案头台钟模式呈现纯粹听觉建筑。",
+        trackIds: ["02", "03", "06"]
+      }
+    ];
+
+    const PLAY_MODES = [
+      { key: "loop", label: "循环" },
+      { key: "single", label: "单曲" },
+      { key: "shuffle", label: "漫游" }
+    ];
+
+    /* -------------------------------------------------------------------------
+       2. GLOBAL APPLICATION STATE
+       ------------------------------------------------------------------------- */
+    const state = {
+      orientation: "portrait",    // 'portrait' | 'landscape'
+      portraitView: "player",     // 'player' | 'home' | 'login' | 'auth'
+      homeTab: "curated",         // 'curated' | 'favorites' | 'editions' | 'search' | 'settings'
+      theme: "paper",             // 'paper' | 'ink'
+      showGrid: false,
+      audioQuality: "FLAC 24-BIT / 96KHZ",
+      audioMuted: false,
+
+      trackIndex: 0,
+      expandedTrackId: null,
+      openEditionId: "ed-1",
+      searchQuery: "",
+      queueOpen: false,
+
+      isPlaying: false,
+      currentTime: 24,
+      modeIndex: 0,
+      activeLyricIndex: -1,
+      isScrubbing: false,
+
+      // Landscape StandBy & Clock
+      forceClockMode: false,
+      isStandby: false,
+      standbyTimer: null,
+      lastTapTime: 0,
+
+      // Login SMS state
+      loginSmsMode: false,
+      smsCooldown: 0,
+      smsTimer: null,
+
+      lastFrameTs: null
+    };
+
+    /* -------------------------------------------------------------------------
+       3. WEB AUDIO API — WARM FELT-PIANO & AMBIENT HARMONIC SYNTHESIZER
+       ------------------------------------------------------------------------- */
+    const FeltPianoEngine = (() => {
+      let ctx = null;
+      let masterGain = null;
+      let lowpass = null;
+      let delay = null;
+      let feedback = null;
+      let timer = null;
+      let step = 0;
+
+      function ensureCtx() {
+        if (ctx) return true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return false;
+        ctx = new AudioCtx();
+
+        masterGain = ctx.createGain();
+        masterGain.gain.value = 0.0001;
+
+        lowpass = ctx.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.value = 1080;
+        lowpass.Q.value = 0.65;
+
+        delay = ctx.createDelay(1.2);
+        delay.delayTime.value = 0.44;
+        feedback = ctx.createGain();
+        feedback.gain.value = 0.22;
+
+        lowpass.connect(masterGain);
+        lowpass.connect(delay);
+        delay.connect(feedback);
+        feedback.connect(delay);
+        delay.connect(masterGain);
+        masterGain.connect(ctx.destination);
+        return true;
+      }
+
+      function updateGain() {
+        if (!ctx || !masterGain) return;
+        const target = state.isPlaying && !state.audioMuted ? 0.16 : 0.0001;
+        const now = ctx.currentTime;
+        masterGain.gain.cancelScheduledValues(now);
+        masterGain.gain.setTargetAtTime(target, now, 0.08);
+      }
+
+      function strike(freq, dur, amp, wave = "triangle", attack = 0.045) {
+        if (!ctx || !lowpass || state.audioMuted) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const harmonic = ctx.createOscillator();
+        const env = ctx.createGain();
+        const harmGain = ctx.createGain();
+
+        osc.type = wave;
+        osc.frequency.setValueAtTime(freq, now);
+
+        harmonic.type = "sine";
+        harmonic.frequency.setValueAtTime(freq * 2, now);
+        harmGain.gain.value = 0.12;
+
+        env.gain.setValueAtTime(0.0001, now);
+        env.gain.linearRampToValueAtTime(amp, now + attack);
+        env.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+        osc.connect(env);
+        harmonic.connect(harmGain);
+        harmGain.connect(env);
+        env.connect(lowpass);
+
+        osc.start(now);
+        harmonic.start(now);
+        osc.stop(now + dur + 0.06);
+        harmonic.stop(now + dur + 0.06);
+      }
+
+      function scheduleStep() {
+        if (!state.isPlaying || !ctx) return;
+        const cfg = TRACKS[state.trackIndex].synth;
+        const bass = cfg.bass[step % cfg.bass.length];
+        const note = cfg.notes[(step * 2 + (step % 3)) % cfg.notes.length];
+
+        if (cfg.mode === "ambient") {
+          lowpass.frequency.setTargetAtTime(780, ctx.currentTime, 0.3);
+          strike(bass, 4.8, 0.22, "sine", 0.6);
+          strike(note, 4.4, 0.18, "triangle", 0.5);
+        } else if (cfg.mode === "waltz") {
+          lowpass.frequency.setTargetAtTime(1150, ctx.currentTime, 0.2);
+          strike(bass, 3.0, 0.22, "sine", 0.04);
+          setTimeout(() => {
+            if (state.isPlaying && ctx) strike(note, 2.7, 0.2, "triangle", 0.04);
+          }, 560);
+        } else {
+          lowpass.frequency.setTargetAtTime(1120, ctx.currentTime, 0.2);
+          if (step % 2 === 0) strike(bass, 3.4, 0.2, "sine", 0.04);
+          strike(note, 3.0, 0.22, "triangle", 0.035);
+        }
+        step++;
+      }
+
+      function start() {
+        try {
+          if (!ensureCtx()) return;
+          if (ctx.state === "suspended") ctx.resume();
+          updateGain();
+          clearInterval(timer);
+          scheduleStep();
+          timer = setInterval(scheduleStep, TRACKS[state.trackIndex].synth.intervalMs);
+        } catch (_) {}
+      }
+
+      function stop() {
+        clearInterval(timer);
+        timer = null;
+        updateGain();
+      }
+
+      function restart() {
+        step = 0;
+        if (state.isPlaying) start();
+      }
+
+      function gentleChime() {
+        try {
+          if (!state.isPlaying || state.audioMuted || !ensureCtx()) return;
+          if (ctx.state === "running") {
+            const notes = TRACKS[state.trackIndex].synth.notes;
+            strike(notes[step % notes.length], 2.2, 0.16, "sine", 0.03);
+          }
+        } catch (_) {}
+      }
+
+      return { start, stop, restart, updateGain, gentleChime };
+    })();
+
+    /* -------------------------------------------------------------------------
+       4. DOM REFERENCES
+       ------------------------------------------------------------------------- */
+    const el = {
+      html: document.documentElement,
+      phoneStage: document.getElementById("phoneStage"),
+      phoneScaleRig: document.getElementById("phoneScaleRig"),
+      phoneGridOverlay: document.getElementById("phoneGridOverlay"),
+      statusClock: document.getElementById("statusClock"),
+      studioDot: document.getElementById("studioDot"),
+      studioStatusText: document.getElementById("studioStatusText"),
+
+      // Outer studio buttons
+      ctrlOrientation: document.getElementById("ctrlOrientation"),
+      ctrlTheme: document.getElementById("ctrlTheme"),
+      ctrlGrid: document.getElementById("ctrlGrid"),
+      ctrlLogin: document.getElementById("ctrlLogin"),
+      ctrlQrAuth: document.getElementById("ctrlQrAuth"),
+      ctrlClockMode: document.getElementById("ctrlClockMode"),
+      ctrlStandby: document.getElementById("ctrlStandby"),
+      ctrlAudioMute: document.getElementById("ctrlAudioMute"),
+
+      // Views
+      viewPortraitPlayer: document.getElementById("viewPortraitPlayer"),
+      viewPortraitHome: document.getElementById("viewPortraitHome"),
+      viewPortraitLogin: document.getElementById("viewPortraitLogin"),
+      viewPortraitAuth: document.getElementById("viewPortraitAuth"),
+      viewLandscapePlayer: document.getElementById("viewLandscapePlayer"),
+
+      // Portrait Player
+      pMetaTop: document.getElementById("pMetaTop"),
+      pStampArt: document.getElementById("pStampArt"),
+      pTrackIndex: document.getElementById("pTrackIndex"),
+      pTrackTitle: document.getElementById("pTrackTitle"),
+      pTrackArtist: document.getElementById("pTrackArtist"),
+      pTrackFormat: document.getElementById("pTrackFormat"),
+      pTrackTime: document.getElementById("pTrackTime"),
+      pLyricZone: document.getElementById("pLyricZone"),
+      pLyricPrev: document.getElementById("pLyricPrev"),
+      pLyricActive: document.getElementById("pLyricActive"),
+      pLyricNext: document.getElementById("pLyricNext"),
+      pSwipeWhisper: document.getElementById("pSwipeWhisper"),
+      pHorizonWrap: document.getElementById("pHorizonWrap"),
+      pScrubFloat: document.getElementById("pScrubFloat"),
+      pHorizonFill: document.getElementById("pHorizonFill"),
+      pHorizonTip: document.getElementById("pHorizonTip"),
+      btnOpenHome: document.getElementById("btnOpenHome"),
+      btnOpenQueue: document.getElementById("btnOpenQueue"),
+      pBtnPlay: document.getElementById("pBtnPlay"),
+      pPlayDot: document.getElementById("pPlayDot"),
+      pPlayText: document.getElementById("pPlayText"),
+      pBtnNext: document.getElementById("pBtnNext"),
+      pBtnFav: document.getElementById("pBtnFav"),
+      pFavDot: document.getElementById("pFavDot"),
+      pFavText: document.getElementById("pFavText"),
+      pBtnMode: document.getElementById("pBtnMode"),
+      pQueueOverlay: document.getElementById("pQueueOverlay"),
+      btnCloseQueue: document.getElementById("btnCloseQueue"),
+      pQueueList: document.getElementById("pQueueList"),
+
+      // Portrait Home
+      homeTabBtns: document.querySelectorAll(".home-tab-btn"),
+      homePanes: document.querySelectorAll(".home-pane"),
+      btnHomeBackPlayer: document.getElementById("btnHomeBackPlayer"),
+      homeNowDot: document.getElementById("homeNowDot"),
+      curatedList: document.getElementById("curatedList"),
+      favEyebrow: document.getElementById("favEyebrow"),
+      favoritesList: document.getElementById("favoritesList"),
+      editionsList: document.getElementById("editionsList"),
+      mSearchInput: document.getElementById("mSearchInput"),
+      mSearchCount: document.getElementById("mSearchCount"),
+      searchList: document.getElementById("searchList"),
+      btnSettingsQrAuth: document.getElementById("btnSettingsQrAuth"),
+      btnSettingsLogout: document.getElementById("btnSettingsLogout"),
+
+      // Portrait Login
+      loginFaceWrap: document.getElementById("loginFaceWrap"),
+      faceidSvg: document.getElementById("faceidSvg"),
+      faceidCaption: document.getElementById("faceidCaption"),
+      loginSmsForm: document.getElementById("loginSmsForm"),
+      btnMobileSendSms: document.getElementById("btnMobileSendSms"),
+      btnFaceIdEnter: document.getElementById("btnFaceIdEnter"),
+      loginPrimaryLabel: document.getElementById("loginPrimaryLabel"),
+      btnToggleSmsLogin: document.getElementById("btnToggleSmsLogin"),
+
+      // Portrait QR Auth
+      authPromptTitle: document.getElementById("authPromptTitle"),
+      authSubStatus: document.getElementById("authSubStatus"),
+      btnAuthConfirm: document.getElementById("btnAuthConfirm"),
+      btnAuthCancel: document.getElementById("btnAuthCancel"),
+
+      // Landscape Player
+      lPlayerRoot: document.getElementById("lPlayerRoot"),
+      lTopIndex: document.getElementById("lTopIndex"),
+      lTopTime: document.getElementById("lTopTime"),
+      lProgressWrap: document.getElementById("lProgressWrap"),
+      lProgressFill: document.getElementById("lProgressFill"),
+      lProgressTip: document.getElementById("lProgressTip"),
+      lBtnPlay: document.getElementById("lBtnPlay"),
+      lBtnNext: document.getElementById("lBtnNext"),
+      lBtnPrev: document.getElementById("lBtnPrev"),
+      lBtnFav: document.getElementById("lBtnFav"),
+      lFavDot: document.getElementById("lFavDot"),
+      lFavText: document.getElementById("lFavText"),
+      lCenterZone: document.getElementById("lCenterZone"),
+      lCinemaWrap: document.getElementById("lCinemaWrap"),
+      lLyricHero: document.getElementById("lLyricHero"),
+      lLyricNext: document.getElementById("lLyricNext"),
+      lClockWrap: document.getElementById("lClockWrap"),
+      lClockHM: document.getElementById("lClockHM"),
+      lClockSec: document.getElementById("lClockSec"),
+      lClockCaption: document.getElementById("lClockCaption"),
+      lMetaTitle: document.getElementById("lMetaTitle"),
+      lMetaArtist: document.getElementById("lMetaArtist"),
+      lMetaAlbum: document.getElementById("lMetaAlbum"),
+      lMetaSpec: document.getElementById("lMetaSpec")
+    };
+
+    /* -------------------------------------------------------------------------
+       5. HELPERS & RESPONSIVE HARDWARE AUTO-SCALING
+       ------------------------------------------------------------------------- */
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    function padTwo(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function currentTrack() {
+      return TRACKS[state.trackIndex];
+    }
+
+    /** Compute crisp responsive scale so the matte hardware frame fits viewport without scroll */
+    function updatePhoneScale() {
+      const stageRect = el.phoneStage.getBoundingClientRect();
+      const targetW = state.orientation === "portrait" ? 414 : 836;
+      const targetH = state.orientation === "portrait" ? 868 : 399;
+      const pad = 20;
+      const scaleW = (stageRect.width - pad) / targetW;
+      const scaleH = (stageRect.height - pad) / targetH;
+      const scale = Math.min(1, scaleW, scaleH);
+      el.phoneScaleRig.style.transform = `scale(${Math.max(0.32, scale).toFixed(4)})`;
+    }
+
+    function updateRealClock() {
+      const now = new Date();
+      const hh = padTwo(now.getHours());
+      const mm = padTwo(now.getMinutes());
+      const ss = padTwo(now.getSeconds());
+      el.statusClock.textContent = `${hh}:${mm}`;
+      el.lClockHM.textContent = `${hh}:${mm}`;
+      el.lClockSec.textContent = ss;
+    }
+
+    function updateStudioReadout() {
+      el.studioDot.classList.toggle("hidden-el", !state.isPlaying);
+      if (state.orientation === "landscape") {
+        const modeTxt = state.isStandby
+          ? "横屏案头 · 已入定 (轻触唤醒)"
+          : state.isPlaying
+            ? "横屏案头 · 812 × 375 (4秒静置入定)"
+            : "横屏案头 · 812 × 375";
+        el.studioStatusText.textContent = modeTxt;
+      } else {
+        const viewLabels = {
+          player: "竖屏诗笺 · 390 × 844",
+          home: "策展索引 · 390 × 844",
+          login: "扉页登录 · 390 × 844",
+          auth: "掌端扫码授权 · 390 × 844"
+        };
+        el.studioStatusText.textContent = viewLabels[state.portraitView];
+      }
+
+      el.ctrlLogin.classList.toggle("is-active", state.orientation === "portrait" && state.portraitView === "login");
+      el.ctrlQrAuth.classList.toggle("is-active", state.orientation === "portrait" && state.portraitView === "auth");
+      el.ctrlClockMode.classList.toggle("is-active", state.forceClockMode);
+      el.ctrlStandby.classList.toggle("is-active", state.isStandby);
+    }
+
+    /* -------------------------------------------------------------------------
+       6. VIEW ROUTING & ORIENTATION MORPHING (PORTRAIT <-> LANDSCAPE)
+       ------------------------------------------------------------------------- */
+    function setPortraitView(viewName) {
+      state.portraitView = viewName;
+      state.queueOpen = false;
+      el.pQueueOverlay.classList.remove("is-open");
+
+      if (state.orientation === "landscape") {
+        setOrientation("portrait");
+      }
+
+      el.viewPortraitPlayer.classList.toggle("is-active", viewName === "player");
+      el.viewPortraitHome.classList.toggle("is-active", viewName === "home");
+      el.viewPortraitLogin.classList.toggle("is-active", viewName === "login");
+      el.viewPortraitAuth.classList.toggle("is-active", viewName === "auth");
+
+      if (viewName === "home") {
+        renderActiveHomeTab();
+      }
+      if (viewName === "auth") {
+        resetAuthView();
+      }
+      updateStudioReadout();
+    }
+
+    function setOrientation(nextOri) {
+      state.orientation = nextOri;
+      el.html.setAttribute("data-orientation", nextOri);
+
+      if (nextOri === "landscape") {
+        el.viewLandscapePlayer.classList.add("is-active");
+        syncLandscapeDisplayMode();
+        resetStandbyTimer();
+      } else {
+        el.viewLandscapePlayer.classList.remove("is-active");
+        wakeStandby(false);
+        // Restore previous portrait view seamlessly
+        el.viewPortraitPlayer.classList.toggle("is-active", state.portraitView === "player");
+        el.viewPortraitHome.classList.toggle("is-active", state.portraitView === "home");
+        el.viewPortraitLogin.classList.toggle("is-active", state.portraitView === "login");
+        el.viewPortraitAuth.classList.toggle("is-active", state.portraitView === "auth");
+      }
+
+      updatePhoneScale();
+      updateStudioReadout();
+    }
+
+    function syncLandscapeDisplayMode() {
+      const t = currentTrack();
+      const showClock = state.forceClockMode || t.instrumental;
+      el.lCinemaWrap.classList.toggle("hidden-el", showClock);
+      el.lClockWrap.classList.toggle("hidden-el", !showClock);
+      el.lClockCaption.textContent = t.instrumental
+        ? `纯器乐静默 · ${t.title}`
+        : `案头台钟 · ${t.title}`;
+    }
+
+    /* -------------------------------------------------------------------------
+       7. LANDSCAPE 4-SECOND STANDBY IDLE MODE
+       ------------------------------------------------------------------------- */
+    function wakeStandby(restartTimer = true) {
+      clearTimeout(state.standbyTimer);
+      state.isStandby = false;
+      el.lPlayerRoot.classList.remove("is-standby");
+      if (restartTimer && state.orientation === "landscape" && state.isPlaying) {
+        state.standbyTimer = setTimeout(() => {
+          state.isStandby = true;
+          el.lPlayerRoot.classList.add("is-standby");
+          updateStudioReadout();
+        }, 4000);
+      }
+      updateStudioReadout();
+    }
+
+    function resetStandbyTimer() {
+      wakeStandby(true);
+    }
+
+    function triggerStandbyImmediately() {
+      if (state.orientation !== "landscape") {
+        setOrientation("landscape");
+      }
+      clearTimeout(state.standbyTimer);
+      state.isStandby = true;
+      el.lPlayerRoot.classList.add("is-standby");
+      updateStudioReadout();
+    }
+
+    /* -------------------------------------------------------------------------
+       8. PLAYBACK, LYRICS & PROGRESS SYNCHRONIZATION
+       ------------------------------------------------------------------------- */
+    function renderTrackMetadata(animate = false) {
+      const t = currentTrack();
+
+      const apply = () => {
+        // Portrait Top-Left
+        el.pStampArt.innerHTML = t.artSvg;
+        el.pTrackIndex.textContent = `NO. ${t.id} · ${t.tag}`;
+        el.pTrackTitle.textContent = t.title;
+        el.pTrackArtist.textContent = `${t.artist} · ${t.album} (${t.year})`;
+        el.pTrackFormat.textContent = state.audioQuality;
+
+        // Landscape Right Column & Top Bar
+        el.lTopIndex.textContent = `静听 · NO. ${t.id}`;
+        el.lMetaTitle.textContent = t.title;
+        el.lMetaArtist.textContent = t.artist;
+        el.lMetaAlbum.textContent = `${t.album} (${t.year})`;
+        el.lMetaSpec.textContent = state.audioQuality.includes("FLAC") ? "FLAC 24-96" : "ALAC 16-44.1";
+
+        syncFavoriteButtons();
+        syncLandscapeDisplayMode();
+        state.activeLyricIndex = -1;
+        syncProgressAndLyrics(true);
+      };
+
+      if (animate) {
+        el.pMetaTop.classList.add("is-fading");
+        el.pLyricZone.classList.add("is-switching");
+        el.lCinemaWrap.classList.add("is-switching");
+        setTimeout(() => {
+          apply();
+          el.pMetaTop.classList.remove("is-fading");
+          el.pLyricZone.classList.remove("is-switching");
+          el.lCinemaWrap.classList.remove("is-switching");
+        }, 250);
+      } else {
+        apply();
+      }
+    }
+
+    function syncProgressAndLyrics(force = false) {
+      const t = currentTrack();
+      const ratio = Math.min(1, Math.max(0, state.currentTime / t.duration));
+      const pct = `${(ratio * 100).toFixed(3)}%`;
+
+      // Portrait Horizon Rule
+      el.pHorizonFill.style.width = pct;
+      el.pHorizonTip.style.left = pct;
+
+      // Landscape Top Rule
+      el.lProgressFill.style.width = pct;
+      el.lProgressTip.style.left = pct;
+
+      const timeStr = `${formatTime(state.currentTime)} / ${formatTime(t.duration)}`;
+      el.pTrackTime.textContent = timeStr;
+      el.lTopTime.textContent = timeStr;
+
+      // Find active lyric line
+      let idx = 0;
+      for (let i = 0; i < t.lyrics.length; i++) {
+        if (state.currentTime >= t.lyrics[i].time) idx = i;
+        else break;
+      }
+
+      if (idx !== state.activeLyricIndex || force) {
+        state.activeLyricIndex = idx;
+        const prev = t.lyrics[idx - 1];
+        const curr = t.lyrics[idx];
+        const next = t.lyrics[idx + 1];
+
+        el.pLyricPrev.textContent = prev ? prev.text : "";
+        el.pLyricPrev.dataset.seekTime = prev ? prev.time : "";
+        el.pLyricActive.innerHTML = `${curr.text}<span class="p-lyric-sub">${curr.sub}</span>`;
+        el.pLyricNext.textContent = next ? next.text : "";
+        el.pLyricNext.dataset.seekTime = next ? next.time : "";
+
+        el.lLyricHero.textContent = curr.text;
+        el.lLyricNext.textContent = next ? next.text : "—";
+      }
+    }
+
+    function syncPlayButtons() {
+      el.pPlayText.textContent = state.isPlaying ? "暂停" : "播放";
+      el.pPlayDot.classList.toggle("hidden-el", !state.isPlaying);
+      el.pBtnPlay.classList.toggle("is-active", state.isPlaying);
+      el.homeNowDot.classList.toggle("hidden-el", !state.isPlaying);
+
+      el.lBtnPlay.textContent = state.isPlaying ? "暂停" : "播放";
+      el.lBtnPlay.classList.toggle("is-active", state.isPlaying);
+
+      if (state.orientation === "landscape") {
+        if (state.isPlaying) resetStandbyTimer();
+        else wakeStandby(false);
+      }
+      updateStudioReadout();
+    }
+
+    function syncFavoriteButtons() {
+      const fav = currentTrack().favorited;
+      el.pFavDot.classList.toggle("hidden-el", !fav);
+      el.pFavText.textContent = fav ? "已藏" : "收藏";
+      el.pBtnFav.classList.toggle("is-active", fav);
+
+      el.lFavDot.classList.toggle("hidden-el", !fav);
+      el.lFavText.textContent = fav ? "已藏" : "收藏";
+      el.lBtnFav.classList.toggle("is-active", fav);
+    }
+
+    function togglePlay() {
+      state.isPlaying = !state.isPlaying;
+      syncPlayButtons();
+      if (state.isPlaying) FeltPianoEngine.start();
+      else FeltPianoEngine.stop();
+    }
+
+    function switchTrack(nextIdx, startPlaying = true) {
+      state.trackIndex = (nextIdx + TRACKS.length) % TRACKS.length;
+      state.currentTime = 0;
+      if (startPlaying) {
+        state.isPlaying = true;
+        syncPlayButtons();
+        FeltPianoEngine.restart();
+      }
+      renderTrackMetadata(true);
+      renderQueueList();
+      if (state.portraitView === "home") renderActiveHomeTab();
+    }
+
+    function nextTrack(autoEnded = false) {
+      const mode = PLAY_MODES[state.modeIndex].key;
+      if (autoEnded && mode === "single") {
+        state.currentTime = 0;
+        syncProgressAndLyrics(true);
+        return;
+      }
+      if (mode === "shuffle" && TRACKS.length > 1) {
+        let r = state.trackIndex;
+        while (r === state.trackIndex) r = Math.floor(Math.random() * TRACKS.length);
+        switchTrack(r, state.isPlaying || !autoEnded);
+      } else {
+        switchTrack(state.trackIndex + 1, state.isPlaying || !autoEnded);
+      }
+    }
+
+    function prevTrack() {
+      if (state.currentTime > 4) {
+        state.currentTime = 0;
+        syncProgressAndLyrics(true);
+      } else {
+        switchTrack(state.trackIndex - 1, true);
+      }
+    }
+
+    function toggleFavorite(trackIdx) {
+      TRACKS[trackIdx].favorited = !TRACKS[trackIdx].favorited;
+      syncFavoriteButtons();
+      if (state.portraitView === "home") renderActiveHomeTab();
+    }
+
+    /* -------------------------------------------------------------------------
+       9. PORTRAIT QUEUE DRAWER & HOME TABS (INLINE ACCORDION PLACARDS)
+       ------------------------------------------------------------------------- */
+    function renderQueueList() {
+      el.pQueueList.innerHTML = "";
+      TRACKS.forEach((t, idx) => {
+        const isCurr = idx === state.trackIndex;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "m-track-head";
+        btn.style.borderBottom = "1px solid var(--ink-ultra-faint)";
+        btn.innerHTML = `
+          <span class="m-track-idx tabular-nums">${isCurr ? '<span class="vermilion-dot"></span>' : ""}${t.id}</span>
+          <span class="m-track-title" style="opacity:${isCurr ? 1 : 0.78}">${t.title}</span>
+          <span class="m-track-dur tabular-nums">${formatTime(t.duration)}</span>
+        `;
+        btn.addEventListener("click", () => {
+          switchTrack(idx, true);
+          state.queueOpen = false;
+          el.pQueueOverlay.classList.remove("is-open");
+        });
+        el.pQueueList.appendChild(btn);
+      });
+    }
+
+    function buildAccordionTrackItem(t) {
+      const idx = TRACKS.findIndex((item) => item.id === t.id);
+      const isPlayingCurr = idx === state.trackIndex;
+      const isExpanded = state.expandedTrackId === t.id;
+
+      const wrap = document.createElement("div");
+      wrap.className =
+        "m-track-item" +
+        (isPlayingCurr ? " is-playing" : "") +
+        (isExpanded ? " is-expanded" : "");
+
+      wrap.innerHTML = `
+        <button class="m-track-head" type="button">
+          <span class="m-track-idx tabular-nums">${isPlayingCurr ? '<span class="vermilion-dot"></span>' : ""}${t.id}</span>
+          <span class="m-track-title">${t.title}</span>
+          <span class="m-track-dur tabular-nums">${formatTime(t.duration)}</span>
+        </button>
+        <div class="m-placard-drawer">
+          <div class="m-placard-inner">
+            <div class="m-placard-body">
+              <div class="m-placard-top">
+                <div class="m-art-52" aria-hidden="true">${t.artSvg}</div>
+                <div class="m-placard-meta tabular-nums">
+                  <div>${t.artist} · ${t.album} (${t.year})</div>
+                  <div>${t.label} · ${state.audioQuality.includes("FLAC") ? "FLAC 24-96" : "ALAC"}</div>
+                </div>
+              </div>
+              <p class="m-placard-note">${t.note}</p>
+              <div class="m-placard-actions">
+                <button class="m-inline-action btn-fav-inline" type="button">
+                  ${t.favorited ? '<span class="vermilion-dot"></span>已藏' : "收藏"}
+                </button>
+                <button class="m-inline-action is-primary btn-play-inline" type="button">入室聆听 —</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wrap.querySelector(".m-track-head").addEventListener("click", () => {
+        state.expandedTrackId = state.expandedTrackId === t.id ? null : t.id;
+        renderActiveHomeTab();
+      });
+
+      wrap.querySelector(".btn-fav-inline").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleFavorite(idx);
+      });
+
+      wrap.querySelector(".btn-play-inline").addEventListener("click", (e) => {
+        e.stopPropagation();
+        switchTrack(idx, true);
+        setPortraitView("player");
+      });
+
+      return wrap;
+    }
+
+    function switchHomeTab(tabName) {
+      state.homeTab = tabName;
+      el.homeTabBtns.forEach((btn) => {
+        const active = btn.dataset.htab === tabName;
+        btn.classList.toggle("is-active", active);
+        const existingDot = btn.querySelector(".vermilion-dot");
+        if (active && !existingDot) {
+          const dot = document.createElement("span");
+          dot.className = "vermilion-dot";
+          btn.prepend(dot);
+        } else if (!active && existingDot) {
+          existingDot.remove();
+        }
+      });
+
+      el.homePanes.forEach((pane) => {
+        pane.classList.toggle("is-active", pane.id === `pane-${tabName}`);
+      });
+
+      renderActiveHomeTab();
+      if (tabName === "search") {
+        setTimeout(() => el.mSearchInput.focus(), 60);
+      }
+    }
+
+    function renderActiveHomeTab() {
+      if (state.homeTab === "curated") {
+        el.curatedList.innerHTML = "";
+        TRACKS.forEach((t) => el.curatedList.appendChild(buildAccordionTrackItem(t)));
+      } else if (state.homeTab === "favorites") {
+        const favs = TRACKS.filter((t) => t.favorited);
+        el.favEyebrow.textContent = `PRIVATE COLLECTION · ${padTwo(favs.length)} 首`;
+        el.favoritesList.innerHTML = "";
+        if (favs.length === 0) {
+          el.favoritesList.innerHTML = `<div class="empty-state">尚未收存任何曲目。<br/>可在「策展」或「播放室」中轻点收藏留驻声响。</div>`;
+        } else {
+          favs.forEach((t) => el.favoritesList.appendChild(buildAccordionTrackItem(t)));
+        }
+      } else if (state.homeTab === "editions") {
+        el.editionsList.innerHTML = "";
+        EDITIONS.forEach((ed) => {
+          const item = document.createElement("div");
+          item.className = "m-edition-item" + (state.openEditionId === ed.id ? " is-open" : "");
+          const tracksHtml = ed.trackIds
+            .map((tid) => {
+              const t = TRACKS.find((x) => x.id === tid);
+              return `<button class="m-edition-track-row" data-tid="${t.id}" type="button">
+                <span>${t.title}</span>
+                <span class="tabular-nums" style="font-size:11px;color:var(--ink-secondary)">${t.artist} · ${formatTime(t.duration)}</span>
+              </button>`;
+            })
+            .join("");
+
+          item.innerHTML = `
+            <button class="m-edition-head" type="button">
+              <div class="m-edition-code tabular-nums">${ed.code}</div>
+              <div class="m-edition-title">${ed.title}</div>
+              <p class="m-edition-desc">${ed.desc}</p>
+            </button>
+            <div class="m-edition-tracks">${tracksHtml}</div>
+          `;
+
+          item.querySelector(".m-edition-head").addEventListener("click", () => {
+            state.openEditionId = state.openEditionId === ed.id ? null : ed.id;
+            renderActiveHomeTab();
+          });
+
+          item.querySelectorAll(".m-edition-track-row").forEach((row) => {
+            row.addEventListener("click", () => {
+              const idx = TRACKS.findIndex((x) => x.id === row.dataset.tid);
+              switchTrack(idx, true);
+              setPortraitView("player");
+            });
+          });
+          el.editionsList.appendChild(item);
+        });
+      } else if (state.homeTab === "search") {
+        const q = state.searchQuery.trim().toLowerCase();
+        const filtered = !q
+          ? TRACKS
+          : TRACKS.filter(
+              (t) =>
+                t.title.toLowerCase().includes(q) ||
+                t.artist.toLowerCase().includes(q) ||
+                t.album.toLowerCase().includes(q) ||
+                t.tag.toLowerCase().includes(q)
+            );
+        el.mSearchCount.textContent = `${padTwo(filtered.length)} 项`;
+        el.searchList.innerHTML = "";
+        if (filtered.length === 0) {
+          el.searchList.innerHTML = `<div class="empty-state">档案中未检索到与「${state.searchQuery}」相契合的记录。</div>`;
+        } else {
+          filtered.forEach((t) => el.searchList.appendChild(buildAccordionTrackItem(t)));
+        }
+      } else if (state.homeTab === "settings") {
+        syncSettingsLedger();
+      }
+    }
+
+    function syncSettingsLedger() {
+      document.querySelectorAll("[data-mtheme]").forEach((b) => {
+        b.classList.toggle("is-selected", b.dataset.mtheme === state.theme);
+      });
+      document.querySelectorAll("[data-mgrid]").forEach((b) => {
+        b.classList.toggle("is-selected", String(state.showGrid) === b.dataset.mgrid);
+      });
+      document.querySelectorAll("[data-mqual]").forEach((b) => {
+        b.classList.toggle("is-selected", b.dataset.mqual === state.audioQuality);
+      });
+    }
+
+    /* -------------------------------------------------------------------------
+       10. LOGIN (FACEID RING + SMS) & MOBILE QR AUTHORIZATION
+       ------------------------------------------------------------------------- */
+    function triggerFaceIdLogin() {
+      if (state.loginSmsMode) {
+        setPortraitView("player");
+        return;
+      }
+      el.faceidSvg.classList.add("is-scanning");
+      el.faceidCaption.textContent = "正在校验面容凭证……";
+      setTimeout(() => {
+        el.faceidCaption.textContent = "已识别 · 正在步入聆听室";
+      }, 480);
+      setTimeout(() => {
+        el.faceidSvg.classList.remove("is-scanning");
+        el.faceidCaption.textContent = "掌端生物凭证已就绪";
+        setPortraitView("player");
+      }, 780);
+    }
+
+    function resetAuthView() {
+      el.authPromptTitle.textContent = "确认于桌面端入室";
+      el.authSubStatus.textContent = "掌端已识别桌面扉页动态码纹";
+      el.btnAuthConfirm.classList.remove("hidden-el");
+      el.btnAuthCancel.textContent = "取消";
+    }
+
+    /* -------------------------------------------------------------------------
+       11. THEME & GRID HELPERS
+       ------------------------------------------------------------------------- */
+    function setTheme(theme) {
+      state.theme = theme;
+      el.html.setAttribute("data-theme", theme);
+      syncSettingsLedger();
+    }
+
+    function setGrid(visible) {
+      state.showGrid = visible;
+      el.phoneGridOverlay.classList.toggle("is-visible", visible);
+      el.ctrlGrid.classList.toggle("is-active", visible);
+      syncSettingsLedger();
+    }
+
+    /* -------------------------------------------------------------------------
+       12. INTERACTION BINDINGS (SCRUBBING, SWIPING, DOUBLE-TAP, CONTROLS)
+       ------------------------------------------------------------------------- */
+    function attachScrubber(wrapEl, showFloatingTooltip) {
+      function calcRatio(clientX) {
+        const rect = wrapEl.getBoundingClientRect();
+        return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      }
+
+      function applyScrub(clientX) {
+        const ratio = calcRatio(clientX);
+        state.currentTime = ratio * currentTrack().duration;
+        if (showFloatingTooltip) {
+          el.pScrubFloat.style.left = `${(ratio * 100).toFixed(2)}%`;
+          el.pScrubFloat.textContent = formatTime(state.currentTime);
+        }
+        syncProgressAndLyrics();
+      }
+
+      wrapEl.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        state.isScrubbing = true;
+        wrapEl.classList.add("is-scrubbing");
+        wrapEl.setPointerCapture(e.pointerId);
+        applyScrub(e.clientX);
+        if (state.orientation === "landscape") resetStandbyTimer();
+      });
+
+      wrapEl.addEventListener("pointermove", (e) => {
+        if (!state.isScrubbing) return;
+        applyScrub(e.clientX);
+      });
+
+      const endScrub = (e) => {
+        if (!state.isScrubbing) return;
+        state.isScrubbing = false;
+        wrapEl.classList.remove("is-scrubbing");
+        FeltPianoEngine.gentleChime();
+        try { wrapEl.releasePointerCapture(e.pointerId); } catch (_) {}
+      };
+      wrapEl.addEventListener("pointerup", endScrub);
+      wrapEl.addEventListener("pointercancel", endScrub);
+    }
+
+    /** Horizontal Swipe-to-Skip (threshold > 45px, calm crossfade) */
+    function attachHorizontalSwipe(zoneEl, allowDoubleTapPlay = false) {
+      let startX = null;
+      let startY = null;
+      let swiped = false;
+
+      zoneEl.addEventListener("pointerdown", (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        swiped = false;
+      });
+
+      zoneEl.addEventListener("pointermove", (e) => {
+        if (startX === null) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) > 16 && Math.abs(dx) > Math.abs(dy) && zoneEl === el.pLyricZone) {
+          el.pSwipeWhisper.textContent = dx < 0 ? "松手 · 下一曲 →" : "← 上一曲 · 松手";
+          el.pSwipeWhisper.classList.add("is-visible");
+        }
+      });
+
+      zoneEl.addEventListener("pointerup", (e) => {
+        if (startX === null) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        startX = null;
+        startY = null;
+
+        if (zoneEl === el.pLyricZone) {
+          el.pSwipeWhisper.classList.remove("is-visible");
+        }
+
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+          swiped = true;
+          if (dx < 0) nextTrack(false);
+          else prevTrack();
+          if (state.orientation === "landscape") resetStandbyTimer();
+          return;
+        }
+
+        if (allowDoubleTapPlay && !swiped) {
+          const now = Date.now();
+          if (now - state.lastTapTime < 320) {
+            togglePlay();
+            state.lastTapTime = 0;
+          } else {
+            state.lastTapTime = now;
+          }
+        }
+      });
+
+      zoneEl.addEventListener("pointercancel", () => {
+        startX = null;
+        if (zoneEl === el.pLyricZone) el.pSwipeWhisper.classList.remove("is-visible");
+      });
+    }
+
+    function bindEvents() {
+      // Outer Studio Controls
+      el.ctrlOrientation.addEventListener("click", () => {
+        setOrientation(state.orientation === "portrait" ? "landscape" : "portrait");
+      });
+      el.ctrlTheme.addEventListener("click", () => {
+        setTheme(state.theme === "paper" ? "ink" : "paper");
+      });
+      el.ctrlGrid.addEventListener("click", () => setGrid(!state.showGrid));
+      el.ctrlLogin.addEventListener("click", () => setPortraitView("login"));
+      el.ctrlQrAuth.addEventListener("click", () => setPortraitView("auth"));
+      el.ctrlClockMode.addEventListener("click", () => {
+        state.forceClockMode = !state.forceClockMode;
+        if (state.orientation !== "landscape") setOrientation("landscape");
+        syncLandscapeDisplayMode();
+        updateStudioReadout();
+      });
+      el.ctrlStandby.addEventListener("click", triggerStandbyImmediately);
+      el.ctrlAudioMute.addEventListener("click", () => {
+        state.audioMuted = !state.audioMuted;
+        el.ctrlAudioMute.textContent = state.audioMuted ? "琴声：静" : "琴声：开";
+        el.ctrlAudioMute.classList.toggle("is-active", !state.audioMuted);
+        FeltPianoEngine.updateGain();
+      });
+
+      // Portrait Player Controls
+      attachScrubber(el.pHorizonWrap, true);
+      attachHorizontalSwipe(el.pLyricZone, false);
+
+      [el.pLyricPrev, el.pLyricNext].forEach((node) => {
+        node.addEventListener("click", (e) => {
+          const t = parseFloat(node.dataset.seekTime);
+          if (!Number.isNaN(t)) {
+            e.stopPropagation();
+            state.currentTime = t + 0.05;
+            if (!state.isPlaying) togglePlay();
+            else FeltPianoEngine.gentleChime();
+            syncProgressAndLyrics(true);
+          }
+        });
+      });
+
+      el.pBtnPlay.addEventListener("click", togglePlay);
+      el.pBtnNext.addEventListener("click", () => nextTrack(false));
+      el.pBtnFav.addEventListener("click", () => toggleFavorite(state.trackIndex));
+      el.pBtnMode.addEventListener("click", () => {
+        state.modeIndex = (state.modeIndex + 1) % PLAY_MODES.length;
+        el.pBtnMode.textContent = PLAY_MODES[state.modeIndex].label;
+      });
+      el.btnOpenHome.addEventListener("click", () => setPortraitView("home"));
+      el.btnOpenQueue.addEventListener("click", () => {
+        renderQueueList();
+        state.queueOpen = true;
+        el.pQueueOverlay.classList.add("is-open");
+      });
+      el.btnCloseQueue.addEventListener("click", () => {
+        state.queueOpen = false;
+        el.pQueueOverlay.classList.remove("is-open");
+      });
+
+      // Portrait Home Navigation & Settings
+      el.homeTabBtns.forEach((btn) => {
+        btn.addEventListener("click", () => switchHomeTab(btn.dataset.htab));
+      });
+      el.btnHomeBackPlayer.addEventListener("click", () => setPortraitView("player"));
+      el.mSearchInput.addEventListener("input", (e) => {
+        state.searchQuery = e.target.value;
+        renderActiveHomeTab();
+      });
+
+      document.querySelectorAll("[data-mtheme]").forEach((b) => {
+        b.addEventListener("click", () => setTheme(b.dataset.mtheme));
+      });
+      document.querySelectorAll("[data-mgrid]").forEach((b) => {
+        b.addEventListener("click", () => setGrid(b.dataset.mgrid === "true"));
+      });
+      document.querySelectorAll("[data-mqual]").forEach((b) => {
+        b.addEventListener("click", () => {
+          state.audioQuality = b.dataset.mqual;
+          renderTrackMetadata(false);
+          syncSettingsLedger();
+        });
+      });
+      el.btnSettingsQrAuth.addEventListener("click", () => setPortraitView("auth"));
+      el.btnSettingsLogout.addEventListener("click", () => setPortraitView("login"));
+
+      // Portrait Login Cover
+      el.btnFaceIdEnter.addEventListener("click", triggerFaceIdLogin);
+      el.btnToggleSmsLogin.addEventListener("click", () => {
+        state.loginSmsMode = !state.loginSmsMode;
+        el.loginFaceWrap.classList.toggle("hidden-el", state.loginSmsMode);
+        el.loginSmsForm.classList.toggle("hidden-el", !state.loginSmsMode);
+        el.loginPrimaryLabel.textContent = state.loginSmsMode ? "确认入室 —" : "面容一键入室 —";
+        el.btnToggleSmsLogin.textContent = state.loginSmsMode ? "返回面容入室" : "验码入室";
+      });
+      el.btnMobileSendSms.addEventListener("click", () => {
+        if (state.smsCooldown > 0) return;
+        state.smsCooldown = 58;
+        el.btnMobileSendSms.disabled = true;
+        el.btnMobileSendSms.textContent = `${state.smsCooldown}s`;
+        clearInterval(state.smsTimer);
+        state.smsTimer = setInterval(() => {
+          state.smsCooldown--;
+          if (state.smsCooldown <= 0) {
+            clearInterval(state.smsTimer);
+            el.btnMobileSendSms.disabled = false;
+            el.btnMobileSendSms.textContent = "获取验码";
+          } else {
+            el.btnMobileSendSms.textContent = `${state.smsCooldown}s`;
+          }
+        }, 1000);
+      });
+
+      // Portrait Mobile QR Auth Screen
+      el.btnAuthConfirm.addEventListener("click", () => {
+        el.authPromptTitle.textContent = "桌面端已入室";
+        el.authSubStatus.textContent = "MacBook Pro 聆听会话已建立";
+        el.btnAuthConfirm.classList.add("hidden-el");
+        el.btnAuthCancel.textContent = "返回聆听室";
+        setTimeout(() => {
+          if (state.portraitView === "auth") setPortraitView("player");
+        }, 1450);
+      });
+      el.btnAuthCancel.addEventListener("click", () => setPortraitView("player"));
+
+      // Landscape Player Controls & Wake-on-Tap
+      attachScrubber(el.lProgressWrap, false);
+      attachHorizontalSwipe(el.lCenterZone, true);
+
+      el.lPlayerRoot.addEventListener("pointerdown", () => {
+        if (state.orientation === "landscape") {
+          resetStandbyTimer();
+        }
+      });
+
+      el.lBtnPlay.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePlay();
+      });
+      el.lBtnNext.addEventListener("click", (e) => {
+        e.stopPropagation();
+        nextTrack(false);
+        resetStandbyTimer();
+      });
+      el.lBtnPrev.addEventListener("click", (e) => {
+        e.stopPropagation();
+        prevTrack();
+        resetStandbyTimer();
+      });
+      el.lBtnFav.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleFavorite(state.trackIndex);
+        resetStandbyTimer();
+      });
+
+      window.addEventListener("resize", updatePhoneScale);
+    }
+
+    /* -------------------------------------------------------------------------
+       13. MASTER CLOCK LOOP & BOOT
+       ------------------------------------------------------------------------- */
+    function tick(ts) {
+      if (state.lastFrameTs !== null && state.isPlaying && !state.isScrubbing) {
+        const dt = Math.min(0.25, (ts - state.lastFrameTs) / 1000);
+        state.currentTime += dt;
+        if (state.currentTime >= currentTrack().duration) {
+          nextTrack(true);
+        } else {
+          syncProgressAndLyrics();
+        }
+      }
+      state.lastFrameTs = ts;
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener("load", () => {
+      bindEvents();
+      updatePhoneScale();
+      updateRealClock();
+      setInterval(updateRealClock, 1000);
+      renderTrackMetadata(false);
+      syncPlayButtons();
+      syncSettingsLedger();
+      renderQueueList();
+      updateStudioReadout();
+      requestAnimationFrame(tick);
+    });
+  </script>
+</body>
+</html>
