@@ -24,3 +24,4 @@ gui/screenshots/smoke_*.png
 pkgbuild/
 staging/
 dist/
+portablebuild/

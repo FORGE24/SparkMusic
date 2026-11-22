@@ -29,3 +29,22 @@ installed.
 `.github/workflows/release.yml` builds inside `debian:trixie` and `fedora:44`,
 installs the resulting package in that container as a dependency check, then
 publishes the files to the GitHub Release for the pushed `v*` tag.
+
+## Portable directory (no package)
+
+For a raw build that runs from its own folder:
+
+```console
+$ cmake -S gui -B portablebuild -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
+$ cmake --build portablebuild
+$ DESTDIR=/path/sparkmusic-v<version>-linux-glibc \
+    cmake --install portablebuild --strip
+$ /path/.../bin/sparkmusic --version
+```
+
+The layout is `bin/sparkmusic` (RUNPATH `$ORIGIN/../lib`), `lib/libsparkmusic_core.so.0`,
+desktop entry and icon under `share/`, plus `LICENSE`/`NOTICE`/`THIRD_PARTY.md`.
+No database is shipped: the app writes to `$XDG_DATA_HOME/sparkmusic/`
+(default `~/.local/share/sparkmusic/`), so the folder stays clean and can be
+deleted without losing that data.

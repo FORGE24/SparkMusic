@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(sparkmusic-core-qt
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "Qt-facing shared library built from the SparkMusic Rust core"
     LANGUAGES CXX)
 
@@ -43,7 +43,7 @@ add_dependencies(sparkmusic_core sparkmusic_core_rust)
 
 set_target_properties(sparkmusic_core PROPERTIES
     OUTPUT_NAME sparkmusic_core
-    VERSION 0.1.0
+    VERSION ${PROJECT_VERSION}
     SOVERSION 0)
 
 target_include_directories(sparkmusic_core PUBLIC

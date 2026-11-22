@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(sparkmusic-gui LANGUAGES CXX)
+project(sparkmusic-gui VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,6 +15,8 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../core"
                  "${CMAKE_CURRENT_BINARY_DIR}/core")
 
 qt_add_executable(sparkmusic main.cpp)
+target_compile_definitions(sparkmusic PRIVATE
+    SPARKMUSIC_VERSION="${PROJECT_VERSION}-beta")
 add_dependencies(sparkmusic sparkmusic_core)
 
 target_link_libraries(sparkmusic PRIVATE

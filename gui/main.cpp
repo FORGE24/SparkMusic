@@ -4,6 +4,8 @@
 // as the `core` context property, and optionally renders one frame to a PNG
 // (`--screenshot out.png`) so the UI can be checked headlessly.
 
+#include <cstdio>
+
 #include <QGuiApplication>
 #include <QFontDatabase>
 #include <QIcon>
@@ -20,7 +22,17 @@
 
 int main(int argc, char *argv[])
 {
+    // Handle --version before creating the GUI application so it also works
+    // on a headless machine without a display server.
+    for (int i = 1; i < argc; ++i) {
+        if (qstrcmp(argv[i], "--version") == 0 || qstrcmp(argv[i], "-v") == 0) {
+            std::printf("sparkmusic %s\n", SPARKMUSIC_VERSION);
+            return 0;
+        }
+    }
+
     QGuiApplication app(argc, argv);
+    app.setApplicationVersion(QStringLiteral(SPARKMUSIC_VERSION));
     app.setWindowIcon(QIcon(QStringLiteral(":/branding/icon-paper.png")));
     app.setOrganizationName(QStringLiteral("SparkMusic"));
     app.setApplicationName(QStringLiteral("STILLE"));
