@@ -88,9 +88,11 @@ target_link_libraries(sparkmusic_core PUBLIC Qt6::Core)
 
 if (MSVC)
     # /WHOLEARCHIVE makes cargo's object files part of the DLL even though the
-    # C++ side only references the factory in c_api.cpp.
+    # C++ side only references the factory in c_api.cpp.  It must be a linker
+    # option: target_link_libraries() treats a leading '/' as a file path and
+    # Ninja then tries to stat "/WHOLEARCHIVE:D:/...".
+    target_link_options(sparkmusic_core PRIVATE "/WHOLEARCHIVE:${RUST_STATIC_LIB}")
     target_link_libraries(sparkmusic_core PRIVATE
-        "/WHOLEARCHIVE:${RUST_STATIC_LIB}"
         ws2_32 userenv bcrypt advapi32 ole32 shell32)
 elseif (WIN32)
     target_link_libraries(sparkmusic_core PRIVATE
