@@ -60,6 +60,23 @@ $ErrorActionPreference = "Stop"
 function Fail {
     param([Parameter(Mandatory = $true)][string]$Message)
     Write-Host "error: $Message" -ForegroundColor Red
+
+    # GitHub Actions renders ::error:: lines as annotations, which makes a
+    # headless CI failure diagnosable without downloading the raw step log.
+    if ($env:GITHUB_ACTIONS -eq "true") {
+        Write-Host "::error title=Windows package::$Message"
+        $build = Get-Variable -Name BuildPath -Scope Script -ErrorAction SilentlyContinue
+        if ($build -and (Test-Path $build.Value)) {
+            foreach ($name in @("CMakeFiles\CMakeConfigureLog.yaml", "CMakeFiles\CMakeError.log")) {
+                $log = Join-Path $build.Value $name
+                if (Test-Path $log) {
+                    Get-Content -Path $log -Tail 30 | ForEach-Object {
+                        Write-Host "::error title=CMake::$($_)"
+                    }
+                }
+            }
+        }
+    }
     exit 1
 }
 

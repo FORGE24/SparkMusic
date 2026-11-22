@@ -85,6 +85,24 @@ jobs:
         shell: pwsh
         run: .\packaging\windows\package.ps1 -Version "${{ steps.v.outputs.version }}" -RequireInstaller
 
+      - name: failure diagnostics
+        if: failure()
+        shell: pwsh
+        run: |
+          $found = $false
+          foreach ($name in @("CMakeFiles\CMakeConfigureLog.yaml", "CMakeFiles\CMakeError.log")) {
+            $file = Join-Path "build-windows" $name
+            if (Test-Path $file) {
+              $found = $true
+              Get-Content -Path $file -Tail 60 | ForEach-Object {
+                Write-Host "::error title=CMake::$($_)"
+              }
+            }
+          }
+          if (-not $found) {
+            Write-Host "::error title=Windows package::no CMake diagnostics (failure was before configure or after build)"
+          }
+
       - uses: actions/upload-artifact@v4
         if: ${{ inputs.upload }}
         with:
