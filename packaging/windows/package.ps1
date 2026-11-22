@@ -94,7 +94,18 @@ function Invoke-Native {
 
     if ($exitCode -ne 0) {
         if ($env:GITHUB_ACTIONS -eq "true") {
-            $tail = ($output | Select-Object -Last 60 | ForEach-Object { "$_" }) -join " || "
+            $lines = @($output | ForEach-Object { "$_" })
+            $interesting = @($lines | Where-Object {
+                $_ -match 'LNK\d+|unresolved external|fatal error|error:|CMake Error'
+            })
+            if ($interesting.Count -eq 0) {
+                $interesting = @($lines | Select-Object -Last 6)
+            } else {
+                $interesting = @($interesting | Select-Object -Last 6)
+            }
+            $tail = ($interesting | ForEach-Object {
+                if ($_.Length -gt 500) { $_.Substring(0, 500) + '...' } else { $_ }
+            }) -join " || "
             Write-Host "::error title=Command failed::$FilePath :: $tail"
         }
         Fail "$FilePath exited with code $exitCode"
