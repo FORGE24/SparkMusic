@@ -8,6 +8,7 @@ Cargo.lock.bak
 # Qt / CMake
 **/gui/build/
 **/build/
+/build-windows/
 
 # Python
 **/__pycache__/

@@ -34,6 +34,22 @@ $ ./gui/smoke.sh                          # build + tests + headless screenshots
 
 The core alone can be built with `cmake -S core -B core/build && cmake --build core/build`.
 
+### Windows
+
+The Windows build is automated end to end and ships every runtime DLL (Qt 6,
+Qt Quick/QML, Qt Multimedia/FFmpeg, `sparkmusic_core.dll`, MSVC runtime). From a
+**Developer PowerShell for VS 2022**, with Qt 6 MSVC configured in
+`QT_ROOT_DIR`:
+
+```powershell
+.\packaging\windows\package.ps1 -Version 0.1.3-beta
+```
+
+It writes `dist\sparkmusic-<version>-windows-x64.zip` and, when Inno Setup 6 is
+installed, `dist\sparkmusic-<version>-windows-x64-setup.exe`. See
+[`packaging/windows/README.md`](packaging/windows/README.md) for prerequisites,
+DLL checks and the portable/installer layout.
+
 Details: [`core/README.md`](core/README.md) and [`gui/README.md`](gui/README.md).
 
 ## api — HTTP service
@@ -82,7 +98,7 @@ extend to `core/` or `api/`.
 
 ## CI
 
-`.github/workflows/ci.yml` runs three jobs on every push and pull request:
+`.github/workflows/ci.yml` runs these jobs on every push and pull request:
 
 * **protocol + api** — rustfmt check + `cargo test` (no Qt needed)
 * **python** — unit tests on Python 3.9 and 3.12
@@ -90,6 +106,8 @@ extend to `core/` or `api/`.
   then a Ninja build of the shell and two offscreen screenshots uploaded as an
   artifact (the run also asserts `ldd build/sparkmusic` resolves
   `libsparkmusic_core.so.0`)
+* **windows** — `.github/workflows/windows.yml` builds the MSVC/Qt 6.8 package,
+  runs the staged app offscreen and uploads the ZIP + installer
 
 ## Releases
 
@@ -99,16 +117,18 @@ Pushing a `v*` tag builds and publishes installable packages:
 $ git tag v0.1.0 && git push origin v0.1.0
 ```
 
-`.github/workflows/release.yml` builds in two containers and attaches the
-results to the GitHub Release:
+`.github/workflows/release.yml` builds in two containers plus a Windows runner
+and attaches the results to the GitHub Release:
 
 | Job | Base image | Asset |
 |---|---|---|
 | `deb` | `debian:trixie` (Qt 6.8) | `sparkmusic_<version>-1_amd64.deb` |
 | `rpm` | `fedora:44` (Qt 6.11) | `sparkmusic-<version>-1.x86_64.rpm` |
+| `windows` | `windows-latest` (Qt 6.8 MSVC) | `sparkmusic-<version>-windows-x64.zip` + `-setup.exe` |
 
-Each job installs its own package inside the container (resolving Qt
+Each Linux job installs its own package inside the container (resolving Qt
 dependencies) and checks that `libsparkmusic_core.so.0` resolves. Qt is not
-bundled: the packages depend on the distribution's Qt 6 and link it
-dynamically. The packaging recipe and manual commands live in
-[`packaging/`](packaging).
+bundled on Linux: the packages depend on the distribution's Qt 6 and link it
+dynamically. The Windows package is self-contained and bundles the Qt DLLs,
+plugins and MSVC runtime. The packaging recipes and manual commands live in
+[`packaging/`](packaging) and [`packaging/windows/`](packaging/windows).

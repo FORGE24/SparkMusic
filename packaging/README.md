@@ -49,6 +49,26 @@ No database is shipped: the app writes to `$XDG_DATA_HOME/sparkmusic/`
 (default `~/.local/share/sparkmusic/`), so the folder stays clean and can be
 deleted without losing that data.
 
+## Windows (portable ZIP + installer)
+
+Windows has a separate, self-contained recipe because Qt is **bundled** there:
+`packaging/windows/package.ps1` builds with MSVC + Ninja, stages the CMake
+install tree, runs `windeployqt` for the Qt DLLs/plugins/FFmpeg, checks the DLL
+set, smoke-tests the staged app offscreen and writes:
+
+```console
+PS> .\packaging\windows\package.ps1 -Version 0.1.3-beta
+   -> dist\sparkmusic-0.1.3-beta-windows-x64.zip
+   -> dist\sparkmusic-0.1.3-beta-windows-x64-setup.exe   (Inno Setup 6)
+   -> dist\SHA256SUMS-windows.txt
+```
+
+The ZIP contains `sparkmusic.exe`, `sparkmusic_core.dll`, Qt 6 + Multimedia +
+FFmpeg DLLs, `platforms\qwindows.dll` and the MSVC runtime, so it runs without a
+Qt or Visual C++ installation. See [`windows/README.md`](windows/README.md) for
+prerequisites and the full DLL inventory. `.github/workflows/windows-package.yml`
+runs it in CI and on release tags.
+
 ## Copr / Packit
 
 `packaging/rpm/sparkmusic.spec` builds the RPM on Fedora 43–45, rawhide and

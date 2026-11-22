@@ -1,0 +1,93 @@
+name: windows-package
+
+# Reusable Windows packaging job. Called by windows.yml (push/PR) and
+# release.yml (v* tags). Produces a ZIP, an Inno Setup installer and checksums
+# with every Qt/MSVC DLL bundled.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Display version (empty: derive from the tag / CMakeLists.txt)"
+        required: false
+        type: string
+        default: ""
+      upload:
+        description: "Upload the dist/ folder as an artifact"
+        required: false
+        type: boolean
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package:
+    name: windows x64 · package
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            protocol -> target
+            core -> target
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          arch: win64_msvc2022_64
+          modules: "qtmultimedia"
+          cache: true
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Inno Setup 6
+        shell: pwsh
+        run: |
+          $iscc = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --no-progress -y
+          }
+
+      - name: version
+        id: v
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}".Trim()
+          if (-not $version) {
+            if ($env:GITHUB_REF -like 'refs/tags/v*') {
+              $version = $env:GITHUB_REF_NAME.Substring(1)
+            } else {
+              $cmake = Get-Content gui/CMakeLists.txt -Raw
+              if ($cmake -match 'project\(sparkmusic-gui VERSION ([0-9]+\.[0-9]+\.[0-9]+)') {
+                $version = "$($Matches[1])-beta"
+              } else {
+                $version = "0.1.3-beta"
+              }
+            }
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "packaging $version"
+
+      - name: build + package (all DLLs)
+        shell: pwsh
+        run: .\packaging\windows\package.ps1 -Version "${{ steps.v.outputs.version }}" -RequireInstaller
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload }}
+        with:
+          name: windows-x64
+          path: dist/
+          if-no-files-found: error

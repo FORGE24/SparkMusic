@@ -23,6 +23,17 @@ $ ./gui/build/sparkmusic
 archive and links it into `libsparkmusic_core.so`; the executable then only
 carries `NEEDED libsparkmusic_core.so.0`.
 
+On Windows the same target produces `sparkmusic.exe` + `sparkmusic_core.dll`,
+with Qt and the MSVC runtime bundled by `windeployqt`:
+
+```powershell
+.\packaging\windows\package.ps1 -Version 0.1.3-beta
+```
+
+See [`../packaging/windows/README.md`](../packaging/windows/README.md). The GUI
+uses the core's `sparkmusic_client_create()` C API and QML/metainvocation, so the
+CXX-Qt class itself never crosses the DLL boundary.
+
 ## Headless checks
 
 ```console

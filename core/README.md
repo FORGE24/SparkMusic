@@ -62,6 +62,33 @@ The build produces:
 | `target/debug/libsparkmusic_core.a` | Rust static archive (linked into the Qt library) |
 | `build/libsparkmusic_core.so.0` | Qt-facing shared library (`cmake -S core -B core/build`) |
 | `target/cxxqt/include/` | generated C++ headers (stable path for consumers) |
+| `build/sparkmusic_core.dll` | Windows shared library (`SPARKMUSIC_CARGO_PROFILE=release` for packages) |
+
+### Windows
+
+Use the automated package script rather than calling CMake by hand:
+
+```powershell
+.\packaging\windows\package.ps1 -Version 0.1.3-beta
+```
+
+It builds with MSVC + Qt 6, links `sparkmusic_core.dll` and bundles the Qt and
+MSVC DLLs. The DLL exports a small C API instead of the CXX-Qt class, because
+the generated class has no `dllimport` annotations (its vtable and
+`staticMetaObject` are data symbols that do not cross a Windows DLL boundary
+safely):
+
+```cpp
+#include "sparkmusic/core_api.h"
+
+QObject *client = sparkmusic_client_create();
+// ... use it as a QObject / QML context property ...
+sparkmusic_client_destroy(client);
+```
+
+`Q_INVOKABLE` methods remain callable through `QMetaObject::invokeMethod` and
+QML. On Linux the same functions are exported normally, so the GUI uses one code
+path everywhere.
 
 ## Desktop GUI (Qt Quick)
 
@@ -183,7 +210,8 @@ than a set of unrelated effects:
 ### Persistence (SQLite)
 
 The core keeps a local database at `$XDG_DATA_HOME/sparkmusic/sparkmusic.db`
-(default `~/.local/share/sparkmusic/sparkmusic.db`), created on first run with
+(default `~/.local/share/sparkmusic/sparkmusic.db`; on Windows
+`%LOCALAPPDATA%\sparkmusic\sparkmusic.db`), created on first run with
 WAL enabled:
 
 | table | contents |

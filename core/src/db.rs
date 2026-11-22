@@ -1,8 +1,9 @@
 //! Local persistence: favourites, play history, settings and the session.
 //!
-//! Everything lives in one SQLite file under the XDG data directory
-//! (`~/.local/share/sparkmusic/sparkmusic.db`). The UI never sees SQL — the
-//! QObject exposes JSON in and JSON out.
+//! Everything lives in one SQLite file under the platform data directory
+//! (`~/.local/share/sparkmusic/sparkmusic.db` on Linux/XDG,
+//! `%LOCALAPPDATA%\sparkmusic\sparkmusic.db` on Windows). The UI never sees
+//! SQL — the QObject exposes JSON in and JSON out.
 
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -66,6 +67,7 @@ impl Database {
     pub fn default_path() -> Option<PathBuf> {
         let base = std::env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
+            .or_else(|| std::env::var_os("LOCALAPPDATA").map(PathBuf::from))
             .or_else(|| {
                 std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share"))
             })?;

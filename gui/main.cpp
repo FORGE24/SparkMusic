@@ -5,10 +5,12 @@
 // (`--screenshot out.png`) so the UI can be checked headlessly.
 
 #include <cstdio>
+#include <memory>
 
 #include <QGuiApplication>
 #include <QFontDatabase>
 #include <QIcon>
+#include <QMetaObject>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
@@ -18,7 +20,14 @@
 #include <QStringList>
 #include <QDebug>
 
-#include "sparkmusic-core/src/lib.cxxqt.h"
+#include "sparkmusic/core_api.h"
+
+namespace {
+void destroyClient(QObject *client)
+{
+    sparkmusic_client_destroy(client);
+}
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -98,10 +107,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    SparkMusicClient client;
+    // The C API keeps the DLL boundary portable: the GUI only sees a QObject and
+    // talks to SparkMusicClient through QML/metainvocation.
+    std::unique_ptr<QObject, void (*)(QObject *)> client(
+        sparkmusic_client_create(), &destroyClient);
+    if (!client) {
+        qCritical() << "failed to create SparkMusicClient";
+        return 1;
+    }
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty(QStringLiteral("core"), &client);
+    engine.rootContext()->setContextProperty(QStringLiteral("core"), client.get());
     engine.rootContext()->setContextProperty(QStringLiteral("initialView"),
                                               showLogin ? QStringLiteral("login") : initialView);
     engine.rootContext()->setContextProperty(QStringLiteral("initialSection"), initialSection);
@@ -120,9 +136,14 @@ int main(int argc, char *argv[])
     }
 
     if (exportOnStart) {
-        QTimer::singleShot(1500, &app, [&client]() {
-            const QString path = client.exportFavorites(QString());
-            qInfo().noquote() << "m3u8:" << (path.isEmpty() ? QStringLiteral("<failed>") : path);
+        QObject *clientObject = client.get();
+        QTimer::singleShot(1500, &app, [clientObject]() {
+            QString path;
+            const bool ok = QMetaObject::invokeMethod(
+                clientObject, "exportFavorites", Q_RETURN_ARG(QString, path),
+                Q_ARG(QString, QString()));
+            qInfo().noquote() << "m3u8:"
+                              << (ok && !path.isEmpty() ? path : QStringLiteral("<failed>"));
         });
     }
 

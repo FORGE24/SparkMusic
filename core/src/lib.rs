@@ -388,6 +388,13 @@ fn default_export_candidates() -> Vec<std::path::PathBuf> {
     if let Some(dir) = std::env::var_os("XDG_MUSIC_DIR") {
         out.push(std::path::PathBuf::from(dir).join("sparkmusic-favorites.m3u8"));
     }
+    if let Some(home) = std::env::var_os("USERPROFILE") {
+        out.push(
+            std::path::PathBuf::from(home)
+                .join("Music")
+                .join("sparkmusic-favorites.m3u8"),
+        );
+    }
     if let Some(home) = std::env::var_os("HOME") {
         out.push(
             std::path::PathBuf::from(home)
