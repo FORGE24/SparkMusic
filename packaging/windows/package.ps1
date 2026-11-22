@@ -96,12 +96,12 @@ function Invoke-Native {
         if ($env:GITHUB_ACTIONS -eq "true") {
             $lines = @($output | ForEach-Object { "$_" })
             $interesting = @($lines | Where-Object {
-                $_ -match 'LNK\d+|unresolved external|fatal error|error:|CMake Error'
+                $_ -match 'LNK\d+|unresolved external|fatal error|error C\d+|error :|error:|FAILED:|CMake Error'
             })
             if ($interesting.Count -eq 0) {
-                $interesting = @($lines | Select-Object -Last 6)
+                $interesting = @($lines | Select-Object -Last 10)
             } else {
-                $interesting = @($interesting | Select-Object -Last 6)
+                $interesting = @($interesting | Select-Object -Last 10)
             }
             $tail = ($interesting | ForEach-Object {
                 if ($_.Length -gt 500) { $_.Substring(0, 500) + '...' } else { $_ }
