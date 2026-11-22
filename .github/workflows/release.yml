@@ -81,7 +81,6 @@ jobs:
             | tar -xz -C /usr/local/bin nfpm
           mkdir -p dist
           nfpm package -f packaging/nfpm.yaml -p ${{ matrix.pkg }} -t dist/
-          sha256sum dist/* > dist/SHA256SUMS
           ls -lh dist
       - name: install check (debian)
         if: matrix.distro == 'debian'
@@ -111,9 +110,13 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      - name: list assets
-        run: ls -lh dist
+      - name: combined checksums
+        run: |
+          cd dist
+          sha256sum *.deb *.rpm > SHA256SUMS
+          cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
