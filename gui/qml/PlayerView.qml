@@ -8,6 +8,7 @@ Item {
     property var pal
     property string serif
     property string serifLatin
+    property string serifDisplay
     property var track
     property string coverUrl: ""
     property int trackNumber: 1

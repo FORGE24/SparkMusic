@@ -5,6 +5,7 @@
 // (`--screenshot out.png`) so the UI can be checked headlessly.
 
 #include <QGuiApplication>
+#include <QFontDatabase>
 #include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -23,6 +24,14 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(QStringLiteral(":/branding/icon-paper.png")));
     app.setOrganizationName(QStringLiteral("SparkMusic"));
     app.setApplicationName(QStringLiteral("STILLE"));
+
+    // Cormorant Garamond (OFL): display-only Latin serif, bundled as a Latin
+    // subset so no machine font is required. Small labels stay on Noto Serif.
+    for (const char *font : {":/fonts/CormorantGaramond-Regular.ttf",
+                             ":/fonts/CormorantGaramond-SemiBold.ttf"}) {
+        if (QFontDatabase::addApplicationFont(QString::fromLatin1(font)) < 0)
+            qWarning() << "could not load bundled font" << font;
+    }
 
     QString screenshot;
     QString initialView = QStringLiteral("home");

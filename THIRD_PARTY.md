@@ -10,6 +10,7 @@ Those licenses do **not** replace the licenses of the dependencies below.
 | Qt 6.11 (Core, Gui, Qml, Quick, Multimedia, Network) | LGPL-3.0 / GPL-3.0 / commercial | linked dynamically; distributing binaries requires complying with LGPL-3.0 (or a Qt commercial license) |
 | cxx, cxx-qt, cxx-qt-lib, cxx-qt-build | MIT OR Apache-2.0 | Rust/Qt bridge |
 | OpenSSL 3 | Apache-2.0 | TLS/X.509 primitives |
+| Cormorant Garamond (bundled, `gui/fonts/`) | OFL-1.1 | Latin display serif; Latin-subset static instances |
 | rusqlite (bundled SQLite) | MIT | SQLite itself is public domain |
 | ureq | MIT OR Apache-2.0 | HTTP client (rustls) |
 | rustls, ring, webpki | ISC / Apache-2.0 / MIT | TLS stack |

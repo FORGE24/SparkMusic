@@ -38,15 +38,19 @@ Flags: `--view login|home|player`, `--section curated|favorites|collections|sear
 
 ## Typography
 
-Shipped pairing (legible at the shell's 9–11 px label sizes):
+| Role | Face |
+|---|---|
+| Chinese body/labels | **Noto Serif CJK SC** (思源宋体) |
+| Chinese page titles (44 px) | Noto Serif CJK SC **SemiBold**, `Scale { xScale: 0.92 }` — a restrained 长体 treatment |
+| Latin labels (9–11 px) | **Noto Serif** (kept for legibility at small sizes) |
+| Latin display (≥18 px) | **Cormorant Garamond** (OFL-1.1), bundled under `gui/fonts/` as Latin-subset Regular/SemiBold and registered with `QFontDatabase::addApplicationFont` |
 
-* Chinese: **Noto Serif CJK SC** (思源宋体); page titles use `Font.ExtraLight`.
-* Latin: **Noto Serif**, so small caps and metadata stay crisp.
+The four section headers now read `01 / 卷首策展` followed by a 18 px Cormorant
+`FEATURED ARCHIVE` line (and `PRIVATE COLLECTION` / `ARCHITECTURAL EDITIONS` /
+`SYSTEM LEDGER` for the other pages), which is where `serifDisplay` is used.
 
-A specimen is kept in `screenshots/type-specimen.png`. It compares 宋体/黑体 and
-a synthetic 长体 (horizontal 0.86 + vertical 1.06), plus four Latin serifs.
-Cormorant Garamond was tried as the Latin face (`type-cormorant-trial.png`):
-at display sizes it matches the reference design, but at 9–11 px its small
-x-height makes the right-hand metadata too faint, so the app keeps Noto Serif.
-The 长体 treatment is likewise not applied by default; it distorts stroke
-contrast and is better reserved for a single hero line.
+![Section title with display Latin](screenshots/title-longform.png)
+
+`type-specimen.png` compares 宋体/黑体 and a synthetic 长体, and
+`type-cormorant-trial.png` shows why Cormorant is display-only: at 9–11 px its
+small x-height made the metadata too faint, so small labels stay on Noto Serif.

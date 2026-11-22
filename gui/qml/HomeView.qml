@@ -7,6 +7,7 @@ Item {
     property var pal
     property string serif
     property string serifLatin
+    property string serifDisplay
     property var tracks: []
     property string listTitle: ""
     property string listSubtitle: ""
@@ -233,7 +234,7 @@ Item {
                     spacing: 22
 
                     Text {
-                        text: "01 / 卷首策展 · FEATURED ARCHIVE"
+                        text: "01 / 卷首策展"
                         color: home.pal.ink3
                         font.family: home.serifLatin
                         font.pixelSize: 10
@@ -245,8 +246,17 @@ Item {
                         color: home.pal.ink
                         font.family: home.serif
                         font.pixelSize: 44
-                        font.weight: Font.ExtraLight
+                        font.weight: Font.DemiBold
                         wrapMode: Text.WordWrap
+                        transform: Scale { xScale: 0.92; origin.x: 0 }
+                    }
+                    Text {
+                        width: parent.width
+                        text: "FEATURED ARCHIVE"
+                        color: home.pal.ink3
+                        font.family: home.serifDisplay
+                        font.pixelSize: 18
+                        font.letterSpacing: 3.4
                     }
                     Text {
                         width: parent.width
@@ -306,7 +316,7 @@ Item {
                         visible: home.section === "favorites"
 
                         Text {
-                            text: "02 / 收藏夹 · PRIVATE COLLECTION"
+                            text: "02 / 收藏夹"
                             color: home.pal.ink3
                             font.family: home.serifLatin
                             font.pixelSize: 10
@@ -317,7 +327,15 @@ Item {
                             color: home.pal.ink
                             font.family: home.serif
                             font.pixelSize: 44
-                            font.weight: Font.ExtraLight
+                            font.weight: Font.DemiBold
+                            transform: Scale { xScale: 0.92; origin.x: 0 }
+                        }
+                        Text {
+                            text: "PRIVATE COLLECTION"
+                            color: home.pal.ink3
+                            font.family: home.serifDisplay
+                            font.pixelSize: 18
+                            font.letterSpacing: 3.4
                         }
                         // ---- account playlists (needs a session) ----
                         Column {
@@ -481,7 +499,7 @@ Item {
                         visible: home.section === "collections"
 
                         Text {
-                            text: "03 / 策展辑 · ARCHITECTURAL EDITIONS"
+                            text: "03 / 策展辑"
                             color: home.pal.ink3
                             font.family: home.serifLatin
                             font.pixelSize: 10
@@ -492,7 +510,15 @@ Item {
                             color: home.pal.ink
                             font.family: home.serif
                             font.pixelSize: 44
-                            font.weight: Font.ExtraLight
+                            font.weight: Font.DemiBold
+                            transform: Scale { xScale: 0.92; origin.x: 0 }
+                        }
+                        Text {
+                            text: "ARCHITECTURAL EDITIONS"
+                            color: home.pal.ink3
+                            font.family: home.serifDisplay
+                            font.pixelSize: 18
+                            font.letterSpacing: 3.4
                         }
                         Text {
                             text: "网易云音乐官方榜单，点击即载入真实曲目"
@@ -670,7 +696,7 @@ Item {
                         visible: home.section === "settings"
 
                         Text {
-                            text: "05 / 系统设置 · SYSTEM LEDGER"
+                            text: "05 / 系统设置"
                             color: home.pal.ink3
                             font.family: home.serifLatin
                             font.pixelSize: 10
@@ -681,7 +707,15 @@ Item {
                             color: home.pal.ink
                             font.family: home.serif
                             font.pixelSize: 44
-                            font.weight: Font.ExtraLight
+                            font.weight: Font.DemiBold
+                            transform: Scale { xScale: 0.92; origin.x: 0 }
+                        }
+                        Text {
+                            text: "SYSTEM LEDGER"
+                            color: home.pal.ink3
+                            font.family: home.serifDisplay
+                            font.pixelSize: 18
+                            font.letterSpacing: 3.4
                         }
                         Text {
                             text: "无冗余控件 · 所有变更实时作用于声学引擎与网格画布"

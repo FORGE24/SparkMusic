@@ -40,6 +40,13 @@ qt_add_qml_module(sparkmusic
 
 # Brand assets are embedded, so the app icon, top-bar mark and login wordmark
 # work from the executable without extra files on disk.
+qt_add_resources(sparkmusic "fonts"
+    PREFIX "/fonts"
+    BASE "${CMAKE_CURRENT_SOURCE_DIR}/fonts"
+    FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/fonts/CormorantGaramond-Regular.ttf"
+        "${CMAKE_CURRENT_SOURCE_DIR}/fonts/CormorantGaramond-SemiBold.ttf")
+
 qt_add_resources(sparkmusic "branding"
     PREFIX "/branding"
     BASE "${CMAKE_CURRENT_SOURCE_DIR}/../branding"

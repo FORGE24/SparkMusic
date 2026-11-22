@@ -15,6 +15,7 @@ Window {
 
     readonly property string serif: "Noto Serif CJK SC"
     readonly property string serifLatin: "Noto Serif"
+    readonly property string serifDisplay: "Cormorant Garamond"
 
     property string theme: typeof launchTheme !== "undefined" && launchTheme !== "" ? launchTheme : "paper"
     property bool gridOn: false
@@ -988,6 +989,7 @@ Window {
                 pal: root.pal
                 serif: root.serif
                 serifLatin: root.serifLatin
+                serifDisplay: root.serifDisplay
                 tracks: root.tracks
                 listTitle: root.listTitle
                 listSubtitle: root.listSubtitle
@@ -1053,6 +1055,7 @@ Window {
                 pal: root.pal
                 serif: root.serif
                 serifLatin: root.serifLatin
+                serifDisplay: root.serifDisplay
                 track: root.currentTrack
                 coverUrl: root.currentCover
                 volume: root.volume
