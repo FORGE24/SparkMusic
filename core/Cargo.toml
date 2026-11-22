@@ -1,6 +1,6 @@
 [package]
 name = "sparkmusic-core"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 rust-version = "1.85"
 description = "Qt-facing core library for SparkMusic, written in Rust with cxx-qt"
