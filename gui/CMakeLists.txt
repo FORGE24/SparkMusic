@@ -50,7 +50,9 @@ if (WIN32)
     else()
         set(SPARKMUSIC_VERSION_RC "0,1,3,0")
     endif()
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sparkmusic.ico" SPARKMUSIC_ICON_RC)
+    # RC accepts forward slashes; avoiding native backslashes also avoids
+    # escape-sequence surprises in the quoted ICON path.
+    set(SPARKMUSIC_ICON_RC "${CMAKE_CURRENT_SOURCE_DIR}/sparkmusic.ico")
     configure_file(sparkmusic.rc.in
                    "${CMAKE_CURRENT_BINARY_DIR}/sparkmusic.rc" @ONLY)
     target_sources(sparkmusic PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/sparkmusic.rc")

@@ -96,7 +96,7 @@ function Invoke-Native {
         if ($env:GITHUB_ACTIONS -eq "true") {
             $lines = @($output | ForEach-Object { "$_" })
             $interesting = @($lines | Where-Object {
-                $_ -match 'LNK\d+|unresolved external|fatal error|error C\d+|error :|error:|FAILED:|CMake Error'
+                $_ -match 'LNK\d+|unresolved external|fatal error|error C\d+|error RC\d+|error :|error:|FAILED:|CMake Error'
             })
             if ($interesting.Count -eq 0) {
                 $interesting = @($lines | Select-Object -Last 10)
