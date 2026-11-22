@@ -1,0 +1,37 @@
+---
+# Packit configuration for the SparkMusic Copr project.
+#
+# Copr project: https://copr.fedorainfracloud.org/coprs/<owner>/SparkMusic/
+# Install the Packit GitHub App on FORGE24/SparkMusic, then publishing a GitHub
+# release (the release workflow creates one for every v* tag) triggers a Copr
+# build. Adjust `owner` if your Copr username differs from `forge24`.
+specfile_path: packaging/rpm/sparkmusic.spec
+upstream_package_name: sparkmusic
+downstream_package_name: sparkmusic
+upstream_project_url: https://github.com/FORGE24/SparkMusic
+copy_upstream_release_description: false
+
+actions:
+  # v0.1.2-beta -> 0.1.2 (RPM Version cannot contain a dash) and a matching
+  # sparkmusic-0.1.2.tar.gz source archive for %autosetup.
+  get-current-version:
+    - "bash packaging/rpm/version.sh"
+  create-archive:
+    - "bash packaging/rpm/archive.sh"
+
+jobs:
+  - job: copr_build
+    trigger: release
+    owner: forge24
+    project: SparkMusic
+    preserve_project: true
+    targets:
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-44-x86_64
+      - fedora-44-aarch64
+      - fedora-45-x86_64
+      - fedora-45-aarch64
+      - fedora-rawhide-x86_64
+      - rhel-10-x86_64
+      - rhel-10-aarch64

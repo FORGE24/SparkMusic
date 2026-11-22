@@ -10,6 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
 
+# Relative library directory under the install prefix. Defaults to "lib" for
+# the portable/DEB layouts; RPM builds pass -DSPARKMUSIC_LIBDIR=%{_lib} so the
+# core lands in /usr/lib64.
+set(SPARKMUSIC_LIBDIR "lib" CACHE STRING "Library install directory (relative)")
+
 # The Rust half is built by cargo. CMake links its static archive wholesale into
 # a C++ shared object so the cxx-qt QObject symbols are exported; consumers
 # (gui/) then link `libsparkmusic_core.so` dynamically.
@@ -55,5 +60,5 @@ target_link_libraries(sparkmusic_core
             "-Wl,--no-whole-archive" pthread dl m)
 
 install(TARGETS sparkmusic_core
-    LIBRARY DESTINATION lib
+    LIBRARY DESTINATION ${SPARKMUSIC_LIBDIR}
     COMPONENT runtime)
