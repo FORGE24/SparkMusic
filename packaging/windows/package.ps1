@@ -85,9 +85,19 @@ function Invoke-Native {
         [Parameter(Mandatory = $true)][string[]]$Arguments
     )
     Write-Host "> $FilePath $($Arguments -join ' ')" -ForegroundColor DarkGray
-    & $FilePath @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        Fail "$FilePath exited with code $LASTEXITCODE"
+
+    # Capture merged stdout/stderr so a failure can be annotated with the real
+    # compiler/linker/Qt error instead of just an exit code.
+    $output = & $FilePath @Arguments 2>&1
+    $exitCode = $LASTEXITCODE
+    $output | ForEach-Object { Write-Host $_ }
+
+    if ($exitCode -ne 0) {
+        if ($env:GITHUB_ACTIONS -eq "true") {
+            $tail = ($output | Select-Object -Last 60 | ForEach-Object { "$_" }) -join " || "
+            Write-Host "::error title=Command failed::$FilePath :: $tail"
+        }
+        Fail "$FilePath exited with code $exitCode"
     }
 }
 
