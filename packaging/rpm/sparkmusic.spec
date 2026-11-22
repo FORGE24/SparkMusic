@@ -70,6 +70,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/sparkmusic.desktop
 %doc NOTICE THIRD_PARTY.md
 
 %changelog
-* Sat Nov 22 2026 FORGE24 <CHENshidi2021@outlook.com> - 0.1.2-1
+* Sun Nov 22 2026 FORGE24 <CHENshidi2021@outlook.com> - 0.1.2-1
 - Initial package: Qt Quick shell, Rust core, QR/SMS/cookie login, SQLite
   favourites and history.

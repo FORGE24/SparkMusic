@@ -25,3 +25,5 @@ pkgbuild/
 staging/
 dist/
 portablebuild/
+.rpmbuild/
+sparkmusic-*.tar.gz

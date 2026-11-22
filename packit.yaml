@@ -1,10 +1,10 @@
 ---
 # Packit configuration for the SparkMusic Copr project.
 #
-# Copr project: https://copr.fedorainfracloud.org/coprs/<owner>/SparkMusic/
+# Copr project: https://copr.fedorainfracloud.org/coprs/tequla/SparkMusic/
 # Install the Packit GitHub App on FORGE24/SparkMusic, then publishing a GitHub
 # release (the release workflow creates one for every v* tag) triggers a Copr
-# build. Adjust `owner` if your Copr username differs from `forge24`.
+# build. Owner is the Copr namespace (`tequla`).
 specfile_path: packaging/rpm/sparkmusic.spec
 upstream_package_name: sparkmusic
 downstream_package_name: sparkmusic
@@ -22,7 +22,7 @@ actions:
 jobs:
   - job: copr_build
     trigger: release
-    owner: forge24
+    owner: tequla
     project: SparkMusic
     preserve_project: true
     targets:
