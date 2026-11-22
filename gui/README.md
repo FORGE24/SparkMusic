@@ -35,3 +35,18 @@ Flags: `--view login|home|player`, `--section curated|favorites|collections|sear
 `--theme paper|ink`, `--query <text>`, `--play <index>`, `--delay <ms>`,
 `--login-mode sms|cookie`, `--demo-account`, `--login-after <ms>`, `--export`,
 `--screenshot <file>`.
+
+## Typography
+
+Shipped pairing (legible at the shell's 9–11 px label sizes):
+
+* Chinese: **Noto Serif CJK SC** (思源宋体); page titles use `Font.ExtraLight`.
+* Latin: **Noto Serif**, so small caps and metadata stay crisp.
+
+A specimen is kept in `screenshots/type-specimen.png`. It compares 宋体/黑体 and
+a synthetic 长体 (horizontal 0.86 + vertical 1.06), plus four Latin serifs.
+Cormorant Garamond was tried as the Latin face (`type-cormorant-trial.png`):
+at display sizes it matches the reference design, but at 9–11 px its small
+x-height makes the right-hand metadata too faint, so the app keeps Noto Serif.
+The 长体 treatment is likewise not applied by default; it distorts stroke
+contrast and is better reserved for a single hero line.
